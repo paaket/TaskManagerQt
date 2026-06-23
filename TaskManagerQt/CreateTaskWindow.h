@@ -10,6 +10,8 @@
 #include <QString>
 #include <QVector>
 #include <QMessageBox>
+#include <QDateEdit>
+#include <QComboBox>
 
 class CreateTaskWindow : public QDialog {
 	Q_OBJECT
@@ -21,7 +23,7 @@ signals:
 	void saveReady(const QVector<QString>& data);
 private:
 	QLineEdit* title;
-	QLineEdit* priority;
-	QLineEdit* deadline;
+	QComboBox* priority;
+	QDateEdit* deadline;
 	QTextEdit* description;
 };

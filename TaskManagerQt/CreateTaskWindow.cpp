@@ -8,12 +8,14 @@ CreateTaskWindow::CreateTaskWindow(QWidget* parent) : QDialog(parent) {
 	QLabel* deadlineLbl = new QLabel("Deadline:");
 	QLabel* descriptionLbl = new QLabel("Description:");
 
+	QList<QString> list = { "None", "Low", "Medium", "High" };
+
 	title = new QLineEdit();
 	title->setPlaceholderText("enter title here");
-	priority = new QLineEdit();
-	priority->setPlaceholderText("enter priority here");
-	deadline = new QLineEdit();
-	deadline->setPlaceholderText("enter deadline here");
+	priority = new QComboBox();
+	priority->addItems(list);
+	priority->setCurrentIndex(0);
+	deadline = new QDateEdit();
 
 	description = new QTextEdit();
 	description->setPlaceholderText("enter description here");
@@ -42,11 +44,11 @@ CreateTaskWindow::CreateTaskWindow(QWidget* parent) : QDialog(parent) {
 
 void CreateTaskWindow::saveClicked() {
 	if (title->text().simplified() == "" or description->toPlainText().simplified() == ""
-		or priority->text().simplified() == "" or deadline->text().simplified() == "") {
+		or priority->currentIndex() == 0 or deadline->text().simplified() == "") {
 		QMessageBox::warning(this, "error", "fill in all fields");
 		return;
 	}
-	QVector<QString> data = { title->text(), description->toPlainText(), priority->text(), deadline->text() };
+	QVector<QString> data = { title->text(), description->toPlainText(), QString::number(priority->currentIndex()), deadline->text(), QDate::currentDate().toString()};
 	emit saveReady(data);
 	accept();
 }
