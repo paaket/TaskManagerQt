@@ -11,6 +11,11 @@
 #include <QFrame>
 #include <QLabel>
 #include <QString>
+#include <QSqlDatabase>
+#include <QSqlQuery>
+#include <QMessageBox>
+#include <QList>
+#include <QSqlError>
 
 class TaskManagerQt : public QMainWindow {
     Q_OBJECT
@@ -24,4 +29,5 @@ private slots:
 private:
     QListWidget* list;
     QLabel* infoWidget;
+    QSqlDatabase db;
 };

@@ -1,10 +1,40 @@
 #include "TaskManagerQt.h"
 
 TaskManagerQt::TaskManagerQt(QWidget *parent) : QMainWindow(parent) {
-    QWidget* mainWidget = new QWidget(this);
-    setCentralWidget(mainWidget);
+    db = QSqlDatabase::addDatabase("QSQLITE");
+    db.setDatabaseName("taskManager.db");
+    if (!db.open()) {
+        QMessageBox::warning(this, "error", "database opening error");
+        return;
+    }
+    QSqlQuery query;
+    QString queryText;
+    queryText = "CREATE TABLE IF NOT EXISTS tasks(id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL, description TEXT NOT NULL, priority INTEGER NOT NULL, deadline TEXT NOT NULL, completed INTEGER NOT NULL, created_at TEXT NOT NULL);";
+    if (!query.exec(queryText)) {
+        QMessageBox::warning(this, "error", "creating table error: " + query.lastError().text());
+        return;
+    }
 
     list = new QListWidget();
+    queryText = "SELECT * FROM tasks";
+    if (!query.exec(queryText)) {
+        QMessageBox::warning(this, "error", "select error: " + query.lastError().text());
+        return;
+    }
+    while (query.next()) {
+        QListWidgetItem* item = new QListWidgetItem(query.value(1).toString());
+        item->setData(Qt::UserRole, query.value(0).toString());
+        item->setData(Qt::UserRole + 1, query.value(1).toString());
+        item->setData(Qt::UserRole + 2, query.value(2).toString());
+        item->setData(Qt::UserRole + 3, query.value(3).toString());
+        item->setData(Qt::UserRole + 4, query.value(4).toString());
+        item->setData(Qt::UserRole + 5, query.value(5).toString());
+        item->setData(Qt::UserRole + 6, query.value(6).toString());
+        list->addItem(item);
+    }
+
+    QWidget* mainWidget = new QWidget(this);
+    setCentralWidget(mainWidget);
 
     infoWidget = new QLabel();
     infoWidget->setFrameShape(QFrame::StyledPanel);
@@ -49,9 +79,14 @@ void TaskManagerQt::addTask() {
 }
 
 void TaskManagerQt::showTask(QListWidgetItem* current, QListWidgetItem* previous) {
+    if (previous == nullptr) return;
+    QString priorityText = current->data(Qt::UserRole + 3).toString();
+    if (priorityText == "1") priorityText = "Low";
+    if (priorityText == "2") priorityText = "Medium";
+    if (priorityText == "1") priorityText = "High";
     QString text = "Title: " + current->data(Qt::UserRole + 1).toString() +
         "\nDescription: " + current->data(Qt::UserRole + 2).toString() +
-        "\nPriority: " + current->data(Qt::UserRole + 3).toString() +
+        "\nPriority: " + priorityText +
         "\nDeadline: " + current->data(Qt::UserRole + 4).toString() +
         "\nStatus: " + current->data(Qt::UserRole + 5).toString() +
         "\nCreated at: " + current->data(Qt::UserRole + 6).toString();
@@ -59,6 +94,19 @@ void TaskManagerQt::showTask(QListWidgetItem* current, QListWidgetItem* previous
 }
 
 void TaskManagerQt::handAddData(const QVector<QString>& data) {
+    QSqlQuery query;
+    query.prepare("INSERT INTO tasks(title, description, priority, deadline, completed, created_at) VALUES (:title, :description, :priority, :deadline, :completed, :created_at)");
+    query.bindValue(":title", data[0]);
+    query.bindValue(":description", data[1]);
+    query.bindValue(":priority", data[2]);
+    query.bindValue(":deadline", data[3]);
+    query.bindValue(":completed", 0);
+    query.bindValue(":created_at", data[4]);
+    if (!query.exec()) {
+        QMessageBox::warning(this, "error", "insert error: " + query.lastError().text());
+        return;
+    }
+
     QListWidgetItem* item = new QListWidgetItem(data[0]);
     item->setData(Qt::UserRole, 0);
     item->setData(Qt::UserRole + 1, data[0]);
@@ -66,12 +114,12 @@ void TaskManagerQt::handAddData(const QVector<QString>& data) {
     item->setData(Qt::UserRole + 3, data[2]);
     item->setData(Qt::UserRole + 4, data[3]);
     item->setData(Qt::UserRole + 5, 0);
-    item->setData(Qt::UserRole + 6, "000");
+    item->setData(Qt::UserRole + 6, data[4]);
     list->addItem(item);
     list->setCurrentRow(list->count() - 1);
     statusBar()->showMessage("successfully added", 3000);
 }
 
 TaskManagerQt::~TaskManagerQt() {
-
+    db.close();
 }
