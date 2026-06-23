@@ -6,7 +6,7 @@ TaskManagerQt::TaskManagerQt(QWidget *parent) : QMainWindow(parent) {
 
     list = new QListWidget();
 
-    QLabel* infoWidget = new QLabel();
+    infoWidget = new QLabel();
     infoWidget->setFrameShape(QFrame::StyledPanel);
     infoWidget->setFrameShadow(QFrame::Sunken);
     infoWidget->setLineWidth(1);
@@ -35,6 +35,7 @@ TaskManagerQt::TaskManagerQt(QWidget *parent) : QMainWindow(parent) {
     hbox->addLayout(vbox);
 
     connect(addBtn, &QPushButton::clicked, this, &TaskManagerQt::addTask);
+    connect(list, &QListWidget::currentItemChanged, this, &TaskManagerQt::showTask);
 
     mainWidget->setLayout(hbox);
 
@@ -47,8 +48,28 @@ void TaskManagerQt::addTask() {
     window.exec();
 }
 
-void TaskManagerQt::handAddData(const QVector<QString>& data) {
+void TaskManagerQt::showTask(QListWidgetItem* current, QListWidgetItem* previous) {
+    QString text = "Title: " + current->data(Qt::UserRole + 1).toString() +
+        "\nDescription: " + current->data(Qt::UserRole + 2).toString() +
+        "\nPriority: " + current->data(Qt::UserRole + 3).toString() +
+        "\nDeadline: " + current->data(Qt::UserRole + 4).toString() +
+        "\nStatus: " + current->data(Qt::UserRole + 5).toString() +
+        "\nCreated at: " + current->data(Qt::UserRole + 6).toString();
+    infoWidget->setText(text);
+}
 
+void TaskManagerQt::handAddData(const QVector<QString>& data) {
+    QListWidgetItem* item = new QListWidgetItem(data[0]);
+    item->setData(Qt::UserRole, 0);
+    item->setData(Qt::UserRole + 1, data[0]);
+    item->setData(Qt::UserRole + 2, data[1]);
+    item->setData(Qt::UserRole + 3, data[2]);
+    item->setData(Qt::UserRole + 4, data[3]);
+    item->setData(Qt::UserRole + 5, 0);
+    item->setData(Qt::UserRole + 6, "000");
+    list->addItem(item);
+    list->setCurrentRow(list->count() - 1);
+    statusBar()->showMessage("successfully added", 3000);
 }
 
 TaskManagerQt::~TaskManagerQt() {

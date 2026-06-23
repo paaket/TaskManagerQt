@@ -11,7 +11,6 @@
 #include <QFrame>
 #include <QLabel>
 #include <QString>
-#include <QVector>
 
 class TaskManagerQt : public QMainWindow {
     Q_OBJECT
@@ -20,7 +19,9 @@ public:
     ~TaskManagerQt();
 private slots:
     void addTask();
+    void showTask(QListWidgetItem* current, QListWidgetItem* previous);
     void handAddData(const QVector<QString>& data);
 private:
     QListWidget* list;
+    QLabel* infoWidget;
 };
