@@ -4,6 +4,7 @@ QString priorityToQString(QString priority) {
     if (priority == "1") return "Low";
     if (priority == "2") return "Medium";
     if (priority == "3") return "High";
+    return "None";
 }
 
 TaskManagerQt::TaskManagerQt(QWidget *parent) : QMainWindow(parent) {
@@ -94,9 +95,7 @@ void TaskManagerQt::deleteTask() {
         QMessageBox::warning(this, "error", "shoose the task");
         return;
     }
-    QString msg = "Are you sure you want to delete the task: "
-        + list->currentItem()->data(Qt::UserRole + 1).toString()
-        + "?\nThe action cannot be undone";
+    QString msg = "Delete selected task?\nThe action cannot be undone";
     int ret = QMessageBox::question(this, "delete task", msg, QMessageBox::Yes | QMessageBox::No);
     if (ret == QMessageBox::Yes) {
         QSqlQuery query;
@@ -157,53 +156,53 @@ void TaskManagerQt::showTask(QListWidgetItem* current, QListWidgetItem* previous
     infoWidget->setText(text);
 }
 
-void TaskManagerQt::handCreateData(const QVector<QString>& data) {
+void TaskManagerQt::handCreateData(const CreateTaskWindow::TaskData& data) {
     QSqlQuery query;
     query.prepare("INSERT INTO tasks(title, description, priority, deadline, completed, created_at) VALUES (:title, :description, :priority, :deadline, :completed, :created_at)");
-    query.bindValue(":title", data[0]);
-    query.bindValue(":description", data[1]);
-    query.bindValue(":priority", data[2]);
-    query.bindValue(":deadline", data[3]);
+    query.bindValue(":title", data.title);
+    query.bindValue(":description", data.description);
+    query.bindValue(":priority", data.priority);
+    query.bindValue(":deadline", data.deadline);
     query.bindValue(":completed", 0);
-    query.bindValue(":created_at", data[4]);
+    query.bindValue(":created_at", data.createdAt);
     if (!query.exec()) {
         QMessageBox::warning(this, "error", "insert error: " + query.lastError().text());
         return;
     }
 
-    QString mainText = "[" + priorityToQString(data[2]) + "] " + data[0] + "\nDue: " + data[3];
+    QString mainText = "[" + priorityToQString(QString::number(data.priority)) + "] " + data.title + "\nDue: " + data.deadline;
     QListWidgetItem* item = new QListWidgetItem(mainText);
     item->setData(Qt::UserRole, query.lastInsertId().toString());
-    item->setData(Qt::UserRole + 1, data[0]);
-    item->setData(Qt::UserRole + 2, data[1]);
-    item->setData(Qt::UserRole + 3, data[2]);
-    item->setData(Qt::UserRole + 4, data[3]);
+    item->setData(Qt::UserRole + 1, data.title);
+    item->setData(Qt::UserRole + 2, data.description);
+    item->setData(Qt::UserRole + 3, data.priority);
+    item->setData(Qt::UserRole + 4, data.deadline);
     item->setData(Qt::UserRole + 5, 0);
-    item->setData(Qt::UserRole + 6, data[4]);
+    item->setData(Qt::UserRole + 6, data.createdAt);
     list->addItem(item);
     list->setCurrentRow(list->count() - 1);
     statusBar()->showMessage("successfully added", 3000);
 }
 
-void TaskManagerQt::handEditData(const QVector<QString>& data) {
+void TaskManagerQt::handEditData(const CreateTaskWindow::TaskData& data) {
     QSqlQuery query;
     query.prepare("UPDATE tasks SET title = :title, description = :description, priority = :priority, deadline = :deadline WHERE id = :id;");
-    query.bindValue(":title", data[0]);
-    query.bindValue(":description", data[1]);
-    query.bindValue(":priority", data[2]);
-    query.bindValue(":deadline", data[3]);
+    query.bindValue(":title", data.title);
+    query.bindValue(":description", data.description);
+    query.bindValue(":priority", data.priority);
+    query.bindValue(":deadline", data.deadline);
     query.bindValue(":id", list->currentItem()->data(Qt::UserRole));
     if (!query.exec()) {
         QMessageBox::warning(this, "error", "edit error: " + query.lastError().text());
         return;
     }
 
-    QString mainText = "[" + priorityToQString(data[2]) + "] " + data[0] + "\nDue: " + data[3];
+    QString mainText = "[" + priorityToQString(QString::number(data.priority)) + "] " + data.title + "\nDue: " + data.deadline;
     list->currentItem()->setText(mainText);
-    list->currentItem()->setData(Qt::UserRole + 1, data[0]);
-    list->currentItem()->setData(Qt::UserRole + 2, data[1]);
-    list->currentItem()->setData(Qt::UserRole + 3, data[2]);
-    list->currentItem()->setData(Qt::UserRole + 4, data[3]);
+    list->currentItem()->setData(Qt::UserRole + 1, data.title);
+    list->currentItem()->setData(Qt::UserRole + 2, data.description);
+    list->currentItem()->setData(Qt::UserRole + 3, data.priority);
+    list->currentItem()->setData(Qt::UserRole + 4, data.deadline);
     statusBar()->showMessage("successfully edited", 3000);
 }
 

@@ -29,8 +29,8 @@ private slots:
     void editTask();
     void markAsCompleted();
     void showTask(QListWidgetItem* current, QListWidgetItem* previous);
-    void handCreateData(const QVector<QString>& data);
-    void handEditData(const QVector<QString>& data);
+    void handCreateData(const CreateTaskWindow::TaskData& data);
+    void handEditData(const CreateTaskWindow::TaskData& data);
 private:
     QListWidget* list;
     QLabel* infoWidget;
