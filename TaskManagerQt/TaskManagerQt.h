@@ -24,6 +24,7 @@ public:
     ~TaskManagerQt();
 private slots:
     void addTask();
+    void deleteTask();
     void showTask(QListWidgetItem* current, QListWidgetItem* previous);
     void handAddData(const QVector<QString>& data);
 private:

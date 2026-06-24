@@ -1,5 +1,11 @@
 #include "TaskManagerQt.h"
 
+QString priorityToQString(QString priority) {
+    if (priority == "1") return "Low";
+    if (priority == "2") return "Medium";
+    if (priority == "3") return "High";
+}
+
 TaskManagerQt::TaskManagerQt(QWidget *parent) : QMainWindow(parent) {
     db = QSqlDatabase::addDatabase("QSQLITE");
     db.setDatabaseName("taskManager.db");
@@ -22,7 +28,9 @@ TaskManagerQt::TaskManagerQt(QWidget *parent) : QMainWindow(parent) {
         return;
     }
     while (query.next()) {
-        QListWidgetItem* item = new QListWidgetItem(query.value(1).toString());
+        QString mainText = "[" + priorityToQString(query.value(3).toString()) + "] " + query.value(1).toString()
+            + "\nDue: " + query.value(4).toString();
+        QListWidgetItem* item = new QListWidgetItem(mainText);
         item->setData(Qt::UserRole, query.value(0).toString());
         item->setData(Qt::UserRole + 1, query.value(1).toString());
         item->setData(Qt::UserRole + 2, query.value(2).toString());
@@ -65,6 +73,7 @@ TaskManagerQt::TaskManagerQt(QWidget *parent) : QMainWindow(parent) {
     hbox->addLayout(vbox);
 
     connect(addBtn, &QPushButton::clicked, this, &TaskManagerQt::addTask);
+    connect(deleteBtn, &QPushButton::clicked, this, &TaskManagerQt::deleteTask);
     connect(list, &QListWidget::currentItemChanged, this, &TaskManagerQt::showTask);
 
     mainWidget->setLayout(hbox);
@@ -78,18 +87,39 @@ void TaskManagerQt::addTask() {
     window.exec();
 }
 
+void TaskManagerQt::deleteTask() {
+    if (!list->currentItem()) {
+        QMessageBox::warning(this, "error", "shoose the task");
+        return;
+    }
+    QString msg = "Are you sure you want to delete the task: "
+        + list->currentItem()->data(Qt::UserRole + 1).toString()
+        + "?\nThe action cannot be undone";
+    int ret = QMessageBox::question(this, "delete task", msg, QMessageBox::Yes | QMessageBox::No);
+    if (ret == QMessageBox::Yes) {
+        QSqlQuery query;
+        query.prepare("DELETE FROM tasks WHERE id = :id");
+        query.bindValue(":id", list->currentItem()->data(Qt::UserRole).toInt());
+        if (!query.exec()) {
+            QMessageBox::warning(this, "error", "delete error: " + query.lastError().text());
+            return;
+        }
+        auto item = list->takeItem(list->currentRow());
+        delete item;
+        statusBar()->showMessage("successfully deleted", 3000);
+    }
+}
+
 void TaskManagerQt::showTask(QListWidgetItem* current, QListWidgetItem* previous) {
     if (previous == nullptr) return;
-    QString priorityText = current->data(Qt::UserRole + 3).toString();
-    if (priorityText == "1") priorityText = "Low";
-    if (priorityText == "2") priorityText = "Medium";
-    if (priorityText == "1") priorityText = "High";
+    QString priorityText = priorityToQString(current->data(Qt::UserRole + 3).toString());
     QString text = "Title: " + current->data(Qt::UserRole + 1).toString() +
         "\nDescription: " + current->data(Qt::UserRole + 2).toString() +
         "\nPriority: " + priorityText +
         "\nDeadline: " + current->data(Qt::UserRole + 4).toString() +
         "\nStatus: " + current->data(Qt::UserRole + 5).toString() +
-        "\nCreated at: " + current->data(Qt::UserRole + 6).toString();
+        "\nCreated at: " + current->data(Qt::UserRole + 6).toString() + 
+        "\nId: " + current->data(Qt::UserRole).toString();
     infoWidget->setText(text);
 }
 
@@ -107,8 +137,9 @@ void TaskManagerQt::handAddData(const QVector<QString>& data) {
         return;
     }
 
-    QListWidgetItem* item = new QListWidgetItem(data[0]);
-    item->setData(Qt::UserRole, 0);
+    QString mainText = "[" + priorityToQString(data[2]) + "] " + data[0] + "\nDue: " + data[3];
+    QListWidgetItem* item = new QListWidgetItem(mainText);
+    item->setData(Qt::UserRole, query.lastInsertId().toString());
     item->setData(Qt::UserRole + 1, data[0]);
     item->setData(Qt::UserRole + 2, data[1]);
     item->setData(Qt::UserRole + 3, data[2]);
