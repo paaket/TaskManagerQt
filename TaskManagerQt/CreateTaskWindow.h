@@ -21,7 +21,7 @@ private slots:
 	void saveClicked();
 signals:
 	void saveReady(const QVector<QString>& data);
-private:
+protected:
 	QLineEdit* title;
 	QComboBox* priority;
 	QDateEdit* deadline;

@@ -16,6 +16,7 @@ CreateTaskWindow::CreateTaskWindow(QWidget* parent) : QDialog(parent) {
 	priority->addItems(list);
 	priority->setCurrentIndex(0);
 	deadline = new QDateEdit();
+	deadline->setDisplayFormat("dd.MM.yyyy");
 
 	description = new QTextEdit();
 	description->setPlaceholderText("enter description here");
@@ -48,7 +49,7 @@ void CreateTaskWindow::saveClicked() {
 		QMessageBox::warning(this, "error", "fill in all fields");
 		return;
 	}
-	QVector<QString> data = { title->text(), description->toPlainText(), QString::number(priority->currentIndex()), deadline->text(), QDate::currentDate().toString()};
+	QVector<QString> data = { title->text(), description->toPlainText(), QString::number(priority->currentIndex()), deadline->text(), QDate::currentDate().toString("dd.MM.yyyy")};
 	emit saveReady(data);
 	accept();
 }
