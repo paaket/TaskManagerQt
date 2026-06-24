@@ -49,7 +49,7 @@ void CreateTaskWindow::saveClicked() {
 		QMessageBox::warning(this, "error", "fill in all fields");
 		return;
 	}
-	QVector<QString> data = { title->text(), description->toPlainText(), QString::number(priority->currentIndex()), deadline->text(), QDate::currentDate().toString("dd.MM.yyyy")};
-	emit saveReady(data);
+	TaskData task = { title->text(), description->toPlainText(), priority->currentIndex(), deadline->text(), QDate::currentDate().toString("dd.MM.yyyy") };
+	emit saveReady(task);
 	accept();
 }

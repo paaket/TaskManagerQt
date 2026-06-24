@@ -16,11 +16,18 @@
 class CreateTaskWindow : public QDialog {
 	Q_OBJECT
 public:
+	struct TaskData {
+		QString title;
+		QString description;
+		int priority;
+		QString deadline;
+		QString createdAt;
+	};
 	CreateTaskWindow(QWidget* patent = nullptr);
 private slots:
 	void saveClicked();
 signals:
-	void saveReady(const QVector<QString>& data);
+	void saveReady(const TaskData& task);
 protected:
 	QLineEdit* title;
 	QComboBox* priority;
