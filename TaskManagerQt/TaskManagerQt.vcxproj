@@ -87,11 +87,15 @@
     <QtUic Include="TaskManagerQt.ui" />
     <QtMoc Include="TaskManagerQt.h" />
     <ClCompile Include="CreateTaskWindow.cpp" />
+    <ClCompile Include="EditTaskWindow.cpp" />
     <ClCompile Include="TaskManagerQt.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="CreateTaskWindow.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="EditTaskWindow.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

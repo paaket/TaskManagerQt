@@ -1,5 +1,6 @@
 #pragma once
 #include "CreateTaskWindow.h"
+#include "EditTaskWindow.h"
 #include <QMainWindow>
 #include <QWidget>
 #include <QHBoxLayout>
@@ -25,8 +26,11 @@ public:
 private slots:
     void addTask();
     void deleteTask();
+    void editTask();
+    void markAsCompleted();
     void showTask(QListWidgetItem* current, QListWidgetItem* previous);
-    void handAddData(const QVector<QString>& data);
+    void handCreateData(const QVector<QString>& data);
+    void handEditData(const QVector<QString>& data);
 private:
     QListWidget* list;
     QLabel* infoWidget;

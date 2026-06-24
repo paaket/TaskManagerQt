@@ -52,17 +52,17 @@ TaskManagerQt::TaskManagerQt(QWidget *parent) : QMainWindow(parent) {
     QPushButton* addBtn = new QPushButton("add task");
     QPushButton* deleteBtn = new QPushButton("delete task");
     QPushButton* editBtn = new QPushButton("edit a task");
-    QPushButton* tempBtn = new QPushButton("temp btn");
+    QPushButton* markCompleted = new QPushButton("mark as completed");
     addBtn->setMinimumSize(130, 40);
     deleteBtn->setMinimumSize(130, 40);
     editBtn->setMinimumSize(130, 40);
-    tempBtn->setMinimumSize(130, 40);
+    markCompleted->setMinimumSize(130, 40);
 
     QGridLayout* grid = new QGridLayout();
     grid->addWidget(addBtn, 0, 0);
     grid->addWidget(deleteBtn, 0, 1);
     grid->addWidget(editBtn, 1, 0);
-    grid->addWidget(tempBtn, 1, 1);
+    grid->addWidget(markCompleted, 1, 1);
 
     QVBoxLayout* vbox = new QVBoxLayout();
     vbox->addWidget(infoWidget);
@@ -74,6 +74,8 @@ TaskManagerQt::TaskManagerQt(QWidget *parent) : QMainWindow(parent) {
 
     connect(addBtn, &QPushButton::clicked, this, &TaskManagerQt::addTask);
     connect(deleteBtn, &QPushButton::clicked, this, &TaskManagerQt::deleteTask);
+    connect(editBtn, &QPushButton::clicked, this, &TaskManagerQt::editTask);
+    connect(markCompleted, &QPushButton::clicked, this, &TaskManagerQt::markAsCompleted);
     connect(list, &QListWidget::currentItemChanged, this, &TaskManagerQt::showTask);
 
     mainWidget->setLayout(hbox);
@@ -83,7 +85,7 @@ TaskManagerQt::TaskManagerQt(QWidget *parent) : QMainWindow(parent) {
 
 void TaskManagerQt::addTask() {
     CreateTaskWindow window(this);
-    connect(&window, &CreateTaskWindow::saveReady, this, &TaskManagerQt::handAddData);
+    connect(&window, &CreateTaskWindow::saveReady, this, &TaskManagerQt::handCreateData);
     window.exec();
 }
 
@@ -110,6 +112,38 @@ void TaskManagerQt::deleteTask() {
     }
 }
 
+void TaskManagerQt::editTask() {
+    if (!list->currentItem()) {
+        QMessageBox::warning(this, "error", "shoose the task");
+        return;
+    }
+    QList<QString> lst = { list->currentItem()->data(Qt::UserRole + 1).toString(),
+    list->currentItem()->data(Qt::UserRole + 2).toString(),
+    list->currentItem()->data(Qt::UserRole + 3).toString(),
+    list->currentItem()->data(Qt::UserRole + 4).toString() };
+    EditTaskWindow window(this, lst);
+    connect(&window, &EditTaskWindow::saveReady, this, &TaskManagerQt::handEditData);
+    window.exec();
+}
+
+void TaskManagerQt::markAsCompleted() {
+    if (!list->currentItem()) {
+        QMessageBox::warning(this, "error", "shoose the task");
+        return;
+    }
+    int newStatus = (list->currentItem()->data(Qt::UserRole + 5).toInt() == 0) ? 1 : 0;
+    QSqlQuery query;
+    query.prepare("UPDATE tasks SET completed = :completed WHERE id = :id");
+    query.bindValue(":completed", newStatus);
+    query.bindValue(":id", list->currentItem()->data(Qt::UserRole));
+    if (!query.exec()) {
+        QMessageBox::warning(this, "error", "update error: " + query.lastError().text());
+        return;
+    }
+    list->currentItem()->setData(Qt::UserRole + 5, newStatus);
+    statusBar()->showMessage("successfully marked", 3000);
+}
+
 void TaskManagerQt::showTask(QListWidgetItem* current, QListWidgetItem* previous) {
     if (previous == nullptr) return;
     QString priorityText = priorityToQString(current->data(Qt::UserRole + 3).toString());
@@ -123,7 +157,7 @@ void TaskManagerQt::showTask(QListWidgetItem* current, QListWidgetItem* previous
     infoWidget->setText(text);
 }
 
-void TaskManagerQt::handAddData(const QVector<QString>& data) {
+void TaskManagerQt::handCreateData(const QVector<QString>& data) {
     QSqlQuery query;
     query.prepare("INSERT INTO tasks(title, description, priority, deadline, completed, created_at) VALUES (:title, :description, :priority, :deadline, :completed, :created_at)");
     query.bindValue(":title", data[0]);
@@ -149,6 +183,28 @@ void TaskManagerQt::handAddData(const QVector<QString>& data) {
     list->addItem(item);
     list->setCurrentRow(list->count() - 1);
     statusBar()->showMessage("successfully added", 3000);
+}
+
+void TaskManagerQt::handEditData(const QVector<QString>& data) {
+    QSqlQuery query;
+    query.prepare("UPDATE tasks SET title = :title, description = :description, priority = :priority, deadline = :deadline WHERE id = :id;");
+    query.bindValue(":title", data[0]);
+    query.bindValue(":description", data[1]);
+    query.bindValue(":priority", data[2]);
+    query.bindValue(":deadline", data[3]);
+    query.bindValue(":id", list->currentItem()->data(Qt::UserRole));
+    if (!query.exec()) {
+        QMessageBox::warning(this, "error", "edit error: " + query.lastError().text());
+        return;
+    }
+
+    QString mainText = "[" + priorityToQString(data[2]) + "] " + data[0] + "\nDue: " + data[3];
+    list->currentItem()->setText(mainText);
+    list->currentItem()->setData(Qt::UserRole + 1, data[0]);
+    list->currentItem()->setData(Qt::UserRole + 2, data[1]);
+    list->currentItem()->setData(Qt::UserRole + 3, data[2]);
+    list->currentItem()->setData(Qt::UserRole + 4, data[3]);
+    statusBar()->showMessage("successfully edited", 3000);
 }
 
 TaskManagerQt::~TaskManagerQt() {
