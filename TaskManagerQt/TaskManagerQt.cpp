@@ -71,8 +71,15 @@ TaskManagerQt::TaskManagerQt(QWidget *parent) : QMainWindow(parent) {
     vbox->addWidget(infoWidget);
     vbox->addItem(grid);
 
+    line = new QLineEdit();
+    line->setPlaceholderText("search by title: ");
+
+    QVBoxLayout* firstVbox = new QVBoxLayout();
+    firstVbox->addWidget(line);
+    firstVbox->addWidget(list);
+
     QHBoxLayout* hbox = new QHBoxLayout();
-    hbox->addWidget(list);
+    hbox->addLayout(firstVbox);
     hbox->addLayout(vbox);
 
     connect(addBtn, &QPushButton::clicked, this, &TaskManagerQt::addTask);
@@ -80,6 +87,7 @@ TaskManagerQt::TaskManagerQt(QWidget *parent) : QMainWindow(parent) {
     connect(editBtn, &QPushButton::clicked, this, &TaskManagerQt::editTask);
     connect(markCompleted, &QPushButton::clicked, this, &TaskManagerQt::markAsCompleted);
     connect(list, &QListWidget::currentItemChanged, this, &TaskManagerQt::showTask);
+    connect(line, &QLineEdit::textChanged, this, &TaskManagerQt::searchTask);
 
     mainWidget->setLayout(hbox);
 
@@ -145,8 +153,22 @@ void TaskManagerQt::markAsCompleted() {
     statusBar()->showMessage("successfully marked", 3000);
 }
 
+void TaskManagerQt::searchTask(const QString& text) {
+    if (text.isEmpty()) {
+        for (int i = 0; i < list->count(); i++) {
+            list->item(i)->setHidden(false);
+        }
+        return;
+    }
+    for (int i = 0; i < list->count(); i++)
+        list->item(i)->setHidden(true);
+
+    QList<QListWidgetItem*> items = list->findItems(text, Qt::MatchContains | Qt::MatchFixedString);
+    for (QListWidgetItem* item : items)
+        item->setHidden(false);
+}
+
 void TaskManagerQt::showTask(QListWidgetItem* current, QListWidgetItem* previous) {
-    if (previous == nullptr) return;
     QString priorityText = priorityToQString(current->data(Roles::PriorityRole).toString());
     QString text = "Title: " + current->data(Roles::TitleRole).toString() +
         "\nDescription: " + current->data(Roles::DescriptionRole).toString() +

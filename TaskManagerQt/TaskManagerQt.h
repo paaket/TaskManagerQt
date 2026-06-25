@@ -17,6 +17,7 @@
 #include <QMessageBox>
 #include <QList>
 #include <QSqlError>
+#include <QLineEdit>
 
 class TaskManagerQt : public QMainWindow {
     Q_OBJECT
@@ -28,6 +29,7 @@ private slots:
     void deleteTask();
     void editTask();
     void markAsCompleted();
+    void searchTask(const QString& text);
     void showTask(QListWidgetItem* current, QListWidgetItem* previous);
     void handCreateData(const CreateTaskWindow::TaskData& data);
     void handEditData(const CreateTaskWindow::TaskData& data);
@@ -43,5 +45,6 @@ private:
     };
     QListWidget* list;
     QLabel* infoWidget;
+    QLineEdit* line;
     QSqlDatabase db;
 };
