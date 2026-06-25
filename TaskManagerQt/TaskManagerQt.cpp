@@ -74,12 +74,28 @@ TaskManagerQt::TaskManagerQt(QWidget *parent) : QMainWindow(parent) {
     line = new QLineEdit();
     line->setPlaceholderText("search by title: ");
 
-    QVBoxLayout* firstVbox = new QVBoxLayout();
-    firstVbox->addWidget(line);
-    firstVbox->addWidget(list);
+    QComboBox* comboBox = new QComboBox();
+    comboBox->addItem("Filters");
+    comboBox->addItem("By priority (High to Low)");
+    comboBox->addItem("By priority (Low to High)");
+    comboBox->addItem("By deadline (Soonest to Lastest)");
+    comboBox->addItem("By deadline (Lastest to Soonest)");
+    comboBox->addItem("By status (Incomplete to Completed)");
+    comboBox->addItem("By status (Completed to Incomplete)");
+    comboBox->addItem("By date created (Oldest to Newest)");
+    comboBox->addItem("By date created (Newest to Oldest)");
+    comboBox->setCurrentIndex(0);
+
+    QHBoxLayout* leftHbox = new QHBoxLayout();
+    leftHbox->addWidget(line);
+    leftHbox->addWidget(comboBox);
+
+    QVBoxLayout* leftVbox = new QVBoxLayout();
+    leftVbox->addLayout(leftHbox);
+    leftVbox->addWidget(list);
 
     QHBoxLayout* hbox = new QHBoxLayout();
-    hbox->addLayout(firstVbox);
+    hbox->addLayout(leftVbox);
     hbox->addLayout(vbox);
 
     connect(addBtn, &QPushButton::clicked, this, &TaskManagerQt::addTask);
@@ -88,6 +104,7 @@ TaskManagerQt::TaskManagerQt(QWidget *parent) : QMainWindow(parent) {
     connect(markCompleted, &QPushButton::clicked, this, &TaskManagerQt::markAsCompleted);
     connect(list, &QListWidget::currentItemChanged, this, &TaskManagerQt::showTask);
     connect(line, &QLineEdit::textChanged, this, &TaskManagerQt::searchTask);
+    connect(comboBox, &QComboBox::currentIndexChanged, this, &TaskManagerQt::sortTasks);
 
     mainWidget->setLayout(hbox);
 
@@ -166,6 +183,51 @@ void TaskManagerQt::searchTask(const QString& text) {
     QList<QListWidgetItem*> items = list->findItems(text, Qt::MatchContains | Qt::MatchFixedString);
     for (QListWidgetItem* item : items)
         item->setHidden(false);
+}
+
+void TaskManagerQt::sortTasks(int index) {
+    list->blockSignals(true);
+    infoWidget->setText("");
+    QList<QListWidgetItem*> items;
+    while (list->count() > 0)
+        items.append(list->takeItem(0));
+    switch (index) {
+    case 1:
+        std::sort(items.begin(), items.end(), [](const QListWidgetItem* first, const QListWidgetItem* second) { 
+            return first->data(Roles::PriorityRole).toInt() > second->data(Roles::PriorityRole).toInt(); });
+        break;
+    case 2:
+        std::sort(items.begin(), items.end(), [](const QListWidgetItem* first, const QListWidgetItem* second) {
+            return first->data(Roles::PriorityRole).toInt() < second->data(Roles::PriorityRole).toInt(); });
+        break;
+    case 3:
+        std::sort(items.begin(), items.end(), [](const QListWidgetItem* first, const QListWidgetItem* second) {
+            return QDate::fromString(first->data(Roles::DeadlineRole).toString(), "dd.MM.yyyy") < QDate::fromString(second->data(Roles::DeadlineRole).toString(), "dd.MM.yyyy"); });
+        break;
+    case 4:
+        std::sort(items.begin(), items.end(), [](const QListWidgetItem* first, const QListWidgetItem* second) {
+            return QDate::fromString(first->data(Roles::DeadlineRole).toString(), "dd.MM.yyyy") > QDate::fromString(second->data(Roles::DeadlineRole).toString(), "dd.MM.yyyy"); });
+        break;
+    case 5:
+        std::sort(items.begin(), items.end(), [](const QListWidgetItem* first, const QListWidgetItem* second) {
+            return first->data(Roles::CompletedRole).toInt() < second->data(Roles::CompletedRole).toInt(); });
+        break;
+    case 6:
+        std::sort(items.begin(), items.end(), [](const QListWidgetItem* first, const QListWidgetItem* second) {
+            return first->data(Roles::CompletedRole).toInt() > second->data(Roles::CompletedRole).toInt(); });
+        break;
+    case 7:
+        std::sort(items.begin(), items.end(), [](const QListWidgetItem* first, const QListWidgetItem* second) {
+            return QDate::fromString(first->data(Roles::CreatedAtRole).toString(), "dd.MM.yyyy") < QDate::fromString(second->data(Roles::CreatedAtRole).toString(), "dd.MM.yyyy"); });
+        break;
+    case 8:
+        std::sort(items.begin(), items.end(), [](const QListWidgetItem* first, const QListWidgetItem* second) {
+            return QDate::fromString(first->data(Roles::CreatedAtRole).toString(), "dd.MM.yyyy") > QDate::fromString(second->data(Roles::CreatedAtRole).toString(), "dd.MM.yyyy"); });
+        break;
+    }
+    for (QListWidgetItem* item : items)
+        list->addItem(item);
+    list->blockSignals(false);
 }
 
 void TaskManagerQt::showTask(QListWidgetItem* current, QListWidgetItem* previous) {

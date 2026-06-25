@@ -18,6 +18,8 @@
 #include <QList>
 #include <QSqlError>
 #include <QLineEdit>
+#include <QComboBox>
+#include <QDate>
 
 class TaskManagerQt : public QMainWindow {
     Q_OBJECT
@@ -30,6 +32,7 @@ private slots:
     void editTask();
     void markAsCompleted();
     void searchTask(const QString& text);
+    void sortTasks(int index);
     void showTask(QListWidgetItem* current, QListWidgetItem* previous);
     void handCreateData(const CreateTaskWindow::TaskData& data);
     void handEditData(const CreateTaskWindow::TaskData& data);
