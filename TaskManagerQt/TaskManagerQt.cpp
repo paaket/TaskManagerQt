@@ -7,6 +7,10 @@ QString priorityToQString(QString priority) {
     return "None";
 }
 
+QString taskTitle(const QString& priority, const QString& title, const QString& deadline) {
+    return "[" + priority + "] " + title + "\nDue: " + deadline;
+}
+
 TaskManagerQt::TaskManagerQt(QWidget *parent) : QMainWindow(parent) {
     db = QSqlDatabase::addDatabase("QSQLITE");
     db.setDatabaseName("taskManager.db");
@@ -29,16 +33,14 @@ TaskManagerQt::TaskManagerQt(QWidget *parent) : QMainWindow(parent) {
         return;
     }
     while (query.next()) {
-        QString mainText = "[" + priorityToQString(query.value(3).toString()) + "] " + query.value(1).toString()
-            + "\nDue: " + query.value(4).toString();
-        QListWidgetItem* item = new QListWidgetItem(mainText);
-        item->setData(Qt::UserRole, query.value(0).toString());
-        item->setData(Qt::UserRole + 1, query.value(1).toString());
-        item->setData(Qt::UserRole + 2, query.value(2).toString());
-        item->setData(Qt::UserRole + 3, query.value(3).toString());
-        item->setData(Qt::UserRole + 4, query.value(4).toString());
-        item->setData(Qt::UserRole + 5, query.value(5).toString());
-        item->setData(Qt::UserRole + 6, query.value(6).toString());
+        QListWidgetItem* item = new QListWidgetItem(taskTitle(priorityToQString(query.value(3).toString()), query.value(1).toString(), query.value(4).toString()));
+        item->setData(Roles::IdRole, query.value(0).toString());
+        item->setData(Roles::TitleRole, query.value(1).toString());
+        item->setData(Roles::DescriptionRole, query.value(2).toString());
+        item->setData(Roles::PriorityRole, query.value(3).toString());
+        item->setData(Roles::DeadlineRole, query.value(4).toString());
+        item->setData(Roles::CompletedRole, query.value(5).toString());
+        item->setData(Roles::CreatedAtRole, query.value(6).toString());
         list->addItem(item);
     }
 
@@ -100,7 +102,7 @@ void TaskManagerQt::deleteTask() {
     if (ret == QMessageBox::Yes) {
         QSqlQuery query;
         query.prepare("DELETE FROM tasks WHERE id = :id");
-        query.bindValue(":id", list->currentItem()->data(Qt::UserRole).toInt());
+        query.bindValue(":id", list->currentItem()->data(Roles::IdRole).toInt());
         if (!query.exec()) {
             QMessageBox::warning(this, "error", "delete error: " + query.lastError().text());
             return;
@@ -116,10 +118,10 @@ void TaskManagerQt::editTask() {
         QMessageBox::warning(this, "error", "shoose the task");
         return;
     }
-    QList<QString> lst = { list->currentItem()->data(Qt::UserRole + 1).toString(),
-    list->currentItem()->data(Qt::UserRole + 2).toString(),
-    list->currentItem()->data(Qt::UserRole + 3).toString(),
-    list->currentItem()->data(Qt::UserRole + 4).toString() };
+    QList<QString> lst = { list->currentItem()->data(Roles::TitleRole).toString(),
+    list->currentItem()->data(Roles::DescriptionRole).toString(),
+    list->currentItem()->data(Roles::PriorityRole).toString(),
+    list->currentItem()->data(Roles::DeadlineRole).toString() };
     EditTaskWindow window(this, lst);
     connect(&window, &EditTaskWindow::saveReady, this, &TaskManagerQt::handEditData);
     window.exec();
@@ -130,29 +132,29 @@ void TaskManagerQt::markAsCompleted() {
         QMessageBox::warning(this, "error", "shoose the task");
         return;
     }
-    int newStatus = (list->currentItem()->data(Qt::UserRole + 5).toInt() == 0) ? 1 : 0;
+    int newStatus = (list->currentItem()->data(Roles::CompletedRole).toInt() == 0) ? 1 : 0;
     QSqlQuery query;
     query.prepare("UPDATE tasks SET completed = :completed WHERE id = :id");
     query.bindValue(":completed", newStatus);
-    query.bindValue(":id", list->currentItem()->data(Qt::UserRole));
+    query.bindValue(":id", list->currentItem()->data(Roles::IdRole));
     if (!query.exec()) {
         QMessageBox::warning(this, "error", "update error: " + query.lastError().text());
         return;
     }
-    list->currentItem()->setData(Qt::UserRole + 5, newStatus);
+    list->currentItem()->setData(Roles::CompletedRole, newStatus);
     statusBar()->showMessage("successfully marked", 3000);
 }
 
 void TaskManagerQt::showTask(QListWidgetItem* current, QListWidgetItem* previous) {
     if (previous == nullptr) return;
-    QString priorityText = priorityToQString(current->data(Qt::UserRole + 3).toString());
-    QString text = "Title: " + current->data(Qt::UserRole + 1).toString() +
-        "\nDescription: " + current->data(Qt::UserRole + 2).toString() +
+    QString priorityText = priorityToQString(current->data(Roles::PriorityRole).toString());
+    QString text = "Title: " + current->data(Roles::TitleRole).toString() +
+        "\nDescription: " + current->data(Roles::DescriptionRole).toString() +
         "\nPriority: " + priorityText +
-        "\nDeadline: " + current->data(Qt::UserRole + 4).toString() +
-        "\nStatus: " + current->data(Qt::UserRole + 5).toString() +
-        "\nCreated at: " + current->data(Qt::UserRole + 6).toString() + 
-        "\nId: " + current->data(Qt::UserRole).toString();
+        "\nDeadline: " + current->data(Roles::DeadlineRole).toString() +
+        "\nStatus: " + current->data(Roles::CompletedRole).toString() +
+        "\nCreated at: " + current->data(Roles::CreatedAtRole).toString() + 
+        "\nId: " + current->data(Roles::IdRole).toString();
     infoWidget->setText(text);
 }
 
@@ -170,15 +172,14 @@ void TaskManagerQt::handCreateData(const CreateTaskWindow::TaskData& data) {
         return;
     }
 
-    QString mainText = "[" + priorityToQString(QString::number(data.priority)) + "] " + data.title + "\nDue: " + data.deadline;
-    QListWidgetItem* item = new QListWidgetItem(mainText);
-    item->setData(Qt::UserRole, query.lastInsertId().toString());
-    item->setData(Qt::UserRole + 1, data.title);
-    item->setData(Qt::UserRole + 2, data.description);
-    item->setData(Qt::UserRole + 3, data.priority);
-    item->setData(Qt::UserRole + 4, data.deadline);
-    item->setData(Qt::UserRole + 5, 0);
-    item->setData(Qt::UserRole + 6, data.createdAt);
+    QListWidgetItem* item = new QListWidgetItem(taskTitle(priorityToQString(QString::number(data.priority)), data.title, data.deadline));
+    item->setData(Roles::IdRole, query.lastInsertId().toString());
+    item->setData(Roles::TitleRole, data.title);
+    item->setData(Roles::DescriptionRole, data.description);
+    item->setData(Roles::PriorityRole, data.priority);
+    item->setData(Roles::DeadlineRole, data.deadline);
+    item->setData(Roles::CompletedRole, 0);
+    item->setData(Roles::CreatedAtRole, data.createdAt);
     list->addItem(item);
     list->setCurrentRow(list->count() - 1);
     statusBar()->showMessage("successfully added", 3000);
@@ -191,18 +192,17 @@ void TaskManagerQt::handEditData(const CreateTaskWindow::TaskData& data) {
     query.bindValue(":description", data.description);
     query.bindValue(":priority", data.priority);
     query.bindValue(":deadline", data.deadline);
-    query.bindValue(":id", list->currentItem()->data(Qt::UserRole));
+    query.bindValue(":id", list->currentItem()->data(Roles::IdRole));
     if (!query.exec()) {
         QMessageBox::warning(this, "error", "edit error: " + query.lastError().text());
         return;
     }
 
-    QString mainText = "[" + priorityToQString(QString::number(data.priority)) + "] " + data.title + "\nDue: " + data.deadline;
-    list->currentItem()->setText(mainText);
-    list->currentItem()->setData(Qt::UserRole + 1, data.title);
-    list->currentItem()->setData(Qt::UserRole + 2, data.description);
-    list->currentItem()->setData(Qt::UserRole + 3, data.priority);
-    list->currentItem()->setData(Qt::UserRole + 4, data.deadline);
+    list->currentItem()->setText(taskTitle(priorityToQString(QString::number(data.priority)), data.title, data.deadline));
+    list->currentItem()->setData(Roles::TitleRole, data.title);
+    list->currentItem()->setData(Roles::DescriptionRole, data.description);
+    list->currentItem()->setData(Roles::PriorityRole, data.priority);
+    list->currentItem()->setData(Roles::DeadlineRole, data.deadline);
     statusBar()->showMessage("successfully edited", 3000);
 }
 

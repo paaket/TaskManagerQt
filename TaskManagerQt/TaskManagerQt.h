@@ -32,6 +32,15 @@ private slots:
     void handCreateData(const CreateTaskWindow::TaskData& data);
     void handEditData(const CreateTaskWindow::TaskData& data);
 private:
+    enum Roles {
+        IdRole = Qt::UserRole,
+        TitleRole,
+        DescriptionRole,
+        PriorityRole,
+        DeadlineRole,
+        CompletedRole,
+        CreatedAtRole
+    };
     QListWidget* list;
     QLabel* infoWidget;
     QSqlDatabase db;
