@@ -12,37 +12,35 @@ QString taskTitle(const QString& priority, const QString& title, const QString& 
 }
 
 TaskManagerQt::TaskManagerQt(QWidget *parent) : QMainWindow(parent) {
-    db = QSqlDatabase::addDatabase("QSQLITE");
-    db.setDatabaseName("taskManager.db");
-    if (!db.open()) {
-        QMessageBox::warning(this, "error", "database opening error");
-        return;
-    }
-    QSqlQuery query;
-    QString queryText;
-    queryText = "CREATE TABLE IF NOT EXISTS tasks(id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL, description TEXT NOT NULL, priority INTEGER NOT NULL, deadline TEXT NOT NULL, completed INTEGER NOT NULL, created_at TEXT NOT NULL);";
-    if (!query.exec(queryText)) {
-        QMessageBox::warning(this, "error", "creating table error: " + query.lastError().text());
-        return;
-    }
+    QSettings settings("Paket", "TaskManagerQt");
+    restoreGeometry(settings.value("geometry").toByteArray());
+    currentUserId = settings.value("currentUserId").toInt();
+
+    db = QSqlDatabase::database();
 
     list = new QListWidget();
-    queryText = "SELECT * FROM tasks";
-    if (!query.exec(queryText)) {
-        QMessageBox::warning(this, "error", "select error: " + query.lastError().text());
+    QSqlQuery query1;
+    query1.prepare("SELECT * FROM tasks WHERE user_id = :user_id");
+    query1.bindValue(":user_id", currentUserId);
+    if (!query1.exec()) {
+        QMessageBox::warning(this, "error", "select error: " + query1.lastError().text());
         return;
     }
-    while (query.next()) {
-        QListWidgetItem* item = new QListWidgetItem(taskTitle(priorityToQString(query.value(3).toString()), query.value(1).toString(), query.value(4).toString()));
-        item->setData(Roles::IdRole, query.value(0).toString());
-        item->setData(Roles::TitleRole, query.value(1).toString());
-        item->setData(Roles::DescriptionRole, query.value(2).toString());
-        item->setData(Roles::PriorityRole, query.value(3).toString());
-        item->setData(Roles::DeadlineRole, query.value(4).toString());
-        item->setData(Roles::CompletedRole, query.value(5).toString());
-        item->setData(Roles::CreatedAtRole, query.value(6).toString());
+    while (query1.next()) {
+        QListWidgetItem* item = new QListWidgetItem(taskTitle(priorityToQString(query1.value(4).toString()), query1.value(2).toString(), query1.value(5).toString()));
+        item->setData(Roles::IdRole, query1.value(0).toString());
+        item->setData(Roles::UserIdRole, query1.value(1).toString());
+        item->setData(Roles::TitleRole, query1.value(2).toString());
+        item->setData(Roles::DescriptionRole, query1.value(3).toString());
+        item->setData(Roles::PriorityRole, query1.value(4).toString());
+        item->setData(Roles::DeadlineRole, query1.value(5).toString());
+        item->setData(Roles::CompletedRole, query1.value(6).toString());
+        item->setData(Roles::CreatedAtRole, query1.value(7).toString());
         list->addItem(item);
     }
+
+    QMenu* menu = menuBar()->addMenu("Account");
+    QAction* exit = menu->addAction("Exit");
 
     QWidget* mainWidget = new QWidget(this);
     setCentralWidget(mainWidget);
@@ -105,6 +103,7 @@ TaskManagerQt::TaskManagerQt(QWidget *parent) : QMainWindow(parent) {
     connect(list, &QListWidget::currentItemChanged, this, &TaskManagerQt::showTask);
     connect(line, &QLineEdit::textChanged, this, &TaskManagerQt::searchTask);
     connect(comboBox, &QComboBox::currentIndexChanged, this, &TaskManagerQt::sortTasks);
+    connect(exit, &QAction::triggered, this, &TaskManagerQt::exitAccount);
 
     mainWidget->setLayout(hbox);
 
@@ -231,6 +230,10 @@ void TaskManagerQt::sortTasks(int index) {
 }
 
 void TaskManagerQt::showTask(QListWidgetItem* current, QListWidgetItem* previous) {
+    if (!current) {
+        infoWidget->clear();
+        return;
+    }
     QString priorityText = priorityToQString(current->data(Roles::PriorityRole).toString());
     QString text = "Title: " + current->data(Roles::TitleRole).toString() +
         "\nDescription: " + current->data(Roles::DescriptionRole).toString() +
@@ -244,7 +247,8 @@ void TaskManagerQt::showTask(QListWidgetItem* current, QListWidgetItem* previous
 
 void TaskManagerQt::handCreateData(const CreateTaskWindow::TaskData& data) {
     QSqlQuery query;
-    query.prepare("INSERT INTO tasks(title, description, priority, deadline, completed, created_at) VALUES (:title, :description, :priority, :deadline, :completed, :created_at)");
+    query.prepare("INSERT INTO tasks(user_id, title, description, priority, deadline, completed, created_at) VALUES (:user_id, :title, :description, :priority, :deadline, :completed, :created_at)");
+    query.bindValue(":user_id", currentUserId);
     query.bindValue(":title", data.title);
     query.bindValue(":description", data.description);
     query.bindValue(":priority", data.priority);
@@ -258,6 +262,7 @@ void TaskManagerQt::handCreateData(const CreateTaskWindow::TaskData& data) {
 
     QListWidgetItem* item = new QListWidgetItem(taskTitle(priorityToQString(QString::number(data.priority)), data.title, data.deadline));
     item->setData(Roles::IdRole, query.lastInsertId().toString());
+    item->setData(Roles::UserIdRole, currentUserId);
     item->setData(Roles::TitleRole, data.title);
     item->setData(Roles::DescriptionRole, data.description);
     item->setData(Roles::PriorityRole, data.priority);
@@ -290,6 +295,15 @@ void TaskManagerQt::handEditData(const CreateTaskWindow::TaskData& data) {
     statusBar()->showMessage("successfully edited", 3000);
 }
 
+void TaskManagerQt::exitAccount() {
+    QSettings settings("Paket", "TaskManagerQt");
+    settings.remove("currentUserId");
+    QApplication::quit();
+}
+
 TaskManagerQt::~TaskManagerQt() {
+    QSettings settings("Paket", "TaskManagerQt");
+    settings.setValue("geometry", saveGeometry());
+    if (settings.value("remember") == 0) settings.remove("currentUserId");
     db.close();
 }

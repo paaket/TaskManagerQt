@@ -88,6 +88,8 @@
     <QtMoc Include="TaskManagerQt.h" />
     <ClCompile Include="CreateTaskWindow.cpp" />
     <ClCompile Include="EditTaskWindow.cpp" />
+    <ClCompile Include="LoginWindow.cpp" />
+    <ClCompile Include="RegisterWindow.cpp" />
     <ClCompile Include="TaskManagerQt.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
@@ -96,6 +98,10 @@
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="EditTaskWindow.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="LoginWindow.h" />
+    <QtMoc Include="RegisterWindow.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

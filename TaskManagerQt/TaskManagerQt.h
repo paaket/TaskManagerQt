@@ -1,6 +1,7 @@
 #pragma once
 #include "CreateTaskWindow.h"
 #include "EditTaskWindow.h"
+#include "LoginWindow.h"
 #include <QMainWindow>
 #include <QWidget>
 #include <QHBoxLayout>
@@ -20,6 +21,11 @@
 #include <QLineEdit>
 #include <QComboBox>
 #include <QDate>
+#include <QSettings>
+#include <QCoreApplication>
+#include <QApplication>
+#include <QAction>
+#include <QMenuBar>
 
 class TaskManagerQt : public QMainWindow {
     Q_OBJECT
@@ -36,9 +42,11 @@ private slots:
     void showTask(QListWidgetItem* current, QListWidgetItem* previous);
     void handCreateData(const CreateTaskWindow::TaskData& data);
     void handEditData(const CreateTaskWindow::TaskData& data);
+    void exitAccount();
 private:
     enum Roles {
         IdRole = Qt::UserRole,
+        UserIdRole,
         TitleRole,
         DescriptionRole,
         PriorityRole,
@@ -50,4 +58,5 @@ private:
     QLabel* infoWidget;
     QLineEdit* line;
     QSqlDatabase db;
+    int currentUserId;
 };
