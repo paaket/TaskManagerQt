@@ -24,9 +24,11 @@ public:
 private slots:
 	void openRegisterWindow();
 	void loginUser();
+	void changePasswordDisplay();
 private:
 	QLineEdit* login;
 	QLineEdit* password;
 	QCheckBox* remember;
+	QCheckBox* showPassword;
 	QSqlDatabase db;
 };

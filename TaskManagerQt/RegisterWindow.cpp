@@ -6,18 +6,19 @@ RegisterWindow::RegisterWindow(QWidget* parent) : QDialog(parent) {
 	QLabel* loginText = new QLabel("Login:");
 	QLabel* passwordText = new QLabel("Password:");
 	QLabel* repeatPasswordText = new QLabel("Repeat password:");
+	QLabel* showPasswordText = new QLabel("Show password:");
 
 	login = new QLineEdit();
 	login->setPlaceholderText("enter login here");
 	login->setMaxLength(20);
 	password = new QLineEdit();
-	password->setEchoMode(QLineEdit::Password);
 	password->setPlaceholderText("enter password here (at least 9 characters)");
 	password->setMaxLength(20);
 	repeatPassword = new QLineEdit();
 	repeatPassword->setEchoMode(QLineEdit::Password);
 	repeatPassword->setPlaceholderText("repeat password here");
 	repeatPassword->setMaxLength(20);
+	showPassword = new QCheckBox();
 
 	QGridLayout* grid = new QGridLayout();
 	grid->addWidget(loginText, 0, 0);
@@ -26,7 +27,8 @@ RegisterWindow::RegisterWindow(QWidget* parent) : QDialog(parent) {
 	grid->addWidget(password, 1, 1);
 	grid->addWidget(repeatPasswordText, 2, 0);
 	grid->addWidget(repeatPassword, 2, 1);
-
+	grid->addWidget(showPasswordText, 3, 0);
+	grid->addWidget(showPassword, 3, 1);
 
 	QPushButton* registerBtn = new QPushButton("Register");
 	QPushButton* cancelBtn = new QPushButton("Cancel");
@@ -45,6 +47,7 @@ RegisterWindow::RegisterWindow(QWidget* parent) : QDialog(parent) {
 
 	connect(registerBtn, &QPushButton::clicked, this, &RegisterWindow::registerUser);
 	connect(cancelBtn, &QPushButton::clicked, this, &RegisterWindow::cancelClicked);
+	connect(showPassword, &QCheckBox::checkStateChanged, this, &RegisterWindow::changePasswordDisplay);
 
 	setLayout(vbox);
 }
@@ -91,6 +94,11 @@ void RegisterWindow::registerUser() {
 
 void RegisterWindow::cancelClicked() {
 	reject();
+}
+
+void RegisterWindow::changePasswordDisplay() {
+	if (showPassword->isChecked()) repeatPassword->setEchoMode(QLineEdit::Normal);
+	else repeatPassword->setEchoMode(QLineEdit::Password);
 }
 
 RegisterWindow::~RegisterWindow() {

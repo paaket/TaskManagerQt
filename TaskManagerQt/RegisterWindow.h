@@ -12,6 +12,7 @@
 #include <QSqlQuery>
 #include <QSqlDatabase>
 #include <QSqlError>
+#include <QCheckBox>
 
 class RegisterWindow : public QDialog {
 	Q_OBJECT
@@ -25,9 +26,11 @@ public:
 private slots:
 	void registerUser();
 	void cancelClicked();
+	void changePasswordDisplay();
 private:
 	QLineEdit* login;
 	QLineEdit* password;
 	QLineEdit* repeatPassword;
+	QCheckBox* showPassword;
 	QSqlDatabase db;
 };
