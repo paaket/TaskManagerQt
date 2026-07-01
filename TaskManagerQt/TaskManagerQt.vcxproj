@@ -83,6 +83,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="TaskModel.cpp" />
     <QtRcc Include="TaskManagerQt.qrc" />
     <QtUic Include="TaskManagerQt.ui" />
     <QtMoc Include="TaskManagerQt.h" />
@@ -106,6 +107,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DatabaseManager.h" />
+    <ClInclude Include="Task.h" />
+    <ClInclude Include="TaskModel.h" />
+    <ClInclude Include="User.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">
