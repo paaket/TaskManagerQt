@@ -87,6 +87,7 @@
     <QtUic Include="TaskManagerQt.ui" />
     <QtMoc Include="TaskManagerQt.h" />
     <ClCompile Include="CreateTaskWindow.cpp" />
+    <ClCompile Include="DatabaseManager.cpp" />
     <ClCompile Include="EditTaskWindow.cpp" />
     <ClCompile Include="LoginWindow.cpp" />
     <ClCompile Include="RegisterWindow.cpp" />
@@ -102,6 +103,9 @@
   <ItemGroup>
     <QtMoc Include="LoginWindow.h" />
     <QtMoc Include="RegisterWindow.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="DatabaseManager.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

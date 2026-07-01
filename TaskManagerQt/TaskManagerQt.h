@@ -30,7 +30,7 @@
 class TaskManagerQt : public QMainWindow {
     Q_OBJECT
 public:
-    TaskManagerQt(QWidget *parent = nullptr);
+    TaskManagerQt(QWidget* parent = nullptr);
     ~TaskManagerQt();
 private slots:
     void addTask();

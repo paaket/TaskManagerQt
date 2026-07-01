@@ -36,6 +36,9 @@ TaskManagerQt::TaskManagerQt(QWidget *parent) : QMainWindow(parent) {
         item->setData(Roles::DeadlineRole, query1.value(5).toString());
         item->setData(Roles::CompletedRole, query1.value(6).toString());
         item->setData(Roles::CreatedAtRole, query1.value(7).toString());
+        QFont font;
+        if (query1.value(6).toInt() == 1) font.setStrikeOut(true);
+        item->setFont(font);
         list->addItem(item);
     }
 
@@ -49,6 +52,10 @@ TaskManagerQt::TaskManagerQt(QWidget *parent) : QMainWindow(parent) {
     infoWidget->setFrameShape(QFrame::StyledPanel);
     infoWidget->setFrameShadow(QFrame::Sunken);
     infoWidget->setLineWidth(1);
+    QFont font;
+    font.setPointSize(11);
+    infoWidget->setFont(font);
+    infoWidget->setAlignment(Qt::AlignTop);
 
     QPushButton* addBtn = new QPushButton("add task");
     QPushButton* deleteBtn = new QPushButton("delete task");
@@ -166,6 +173,10 @@ void TaskManagerQt::markAsCompleted() {
         return;
     }
     list->currentItem()->setData(Roles::CompletedRole, newStatus);
+    QFont font;
+    if (newStatus == 1) font.setStrikeOut(true);
+    else font.setStrikeOut(false);
+    list->currentItem()->setFont(font);
     statusBar()->showMessage("successfully marked", 3000);
 }
 
