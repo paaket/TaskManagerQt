@@ -17,11 +17,11 @@ int main(int argc, char *argv[]) {
 
     QSettings settings("Paket", "TaskManagerQt");
     if (!settings.contains("currentUserId")) {
-        LoginWindow login;
+        LoginWindow login(&databaseManager);
         if (login.exec() != QDialog::Accepted) return 0;
     }
 
-    TaskManagerQt window;
+    TaskManagerQt window(&databaseManager);
     window.setMinimumSize(900, 600);
     window.show();
 

@@ -83,6 +83,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="TaskDelegator.cpp" />
+    <ClCompile Include="TaskModel.cpp" />
+    <ClCompile Include="TaskSortProxyModel.cpp" />
     <QtRcc Include="TaskManagerQt.qrc" />
     <QtUic Include="TaskManagerQt.ui" />
     <QtMoc Include="TaskManagerQt.h" />
@@ -106,6 +109,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DatabaseManager.h" />
+    <ClInclude Include="Task.h" />
+    <ClInclude Include="TaskDelegator.h" />
+    <ClInclude Include="TaskModel.h" />
+    <QtMoc Include="TaskSortProxyModel.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

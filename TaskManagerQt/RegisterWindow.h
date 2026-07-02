@@ -9,10 +9,8 @@
 #include <QHBoxLayout>
 #include <QMessageBox>
 #include <QString>
-#include <QSqlQuery>
-#include <QSqlDatabase>
-#include <QSqlError>
 #include <QCheckBox>
+#include "DatabaseManager.h"
 
 class RegisterWindow : public QDialog {
 	Q_OBJECT
@@ -21,8 +19,7 @@ public:
 		QString login;
 		QString password;
 	};
-	RegisterWindow(QWidget* parent = nullptr);
-	~RegisterWindow();
+	RegisterWindow(DatabaseManager* dbManager, QWidget* parent = nullptr);
 private slots:
 	void registerUser();
 	void cancelClicked();
@@ -32,5 +29,5 @@ private:
 	QLineEdit* password;
 	QLineEdit* repeatPassword;
 	QCheckBox* showPassword;
-	QSqlDatabase db;
+	DatabaseManager* dbManager;
 };

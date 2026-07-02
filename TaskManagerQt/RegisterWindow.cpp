@@ -1,7 +1,9 @@
 #include "RegisterWindow.h"
 
-RegisterWindow::RegisterWindow(QWidget* parent) : QDialog(parent) {
+RegisterWindow::RegisterWindow(DatabaseManager* dbManager, QWidget* parent) : QDialog(parent) {
 	setMinimumSize(500, 300);
+
+	this->dbManager = dbManager;
 
 	QLabel* loginText = new QLabel("Login:");
 	QLabel* passwordText = new QLabel("Password:");
@@ -65,27 +67,13 @@ void RegisterWindow::registerUser() {
 		QMessageBox::warning(this, "error", "passwords must match");
 		return;
 	}
-	db = QSqlDatabase::database();
-	if (!db.open()) {
-		QMessageBox::warning(this, "error", "database opening error");
+	if (!dbManager->checkLogin(login->text().simplified())) {
+		QMessageBox::warning(this, "error", "Error\nThis username might already be taken");
 		return;
 	}
-	QSqlQuery query;
-	if (!query.exec("SELECT login FROM users;")) {
-		QMessageBox::warning(this, "error", "select error: " + query.lastError().text());
-		return;
-	}
-	while (query.next()) {
-		if (query.value(0) == login->text().simplified()) {
-			QMessageBox::warning(this, "error", "this login is already taken");
-			return;
-		}
-	}
-	query.prepare("INSERT INTO users(login, password) VALUES (:login, :password);");
-	query.bindValue(":login", login->text().simplified());
-	query.bindValue(":password", password->text().simplified());
-	if (!query.exec()) {
-		QMessageBox::warning(this, "error", "insert error: " + query.lastError().text());
+	QString errorText = dbManager->addNewUser(login->text().simplified(), password->text().simplified());
+	if (errorText != "") {
+		QMessageBox::warning(this, "error", errorText);
 		return;
 	}
 	QMessageBox::information(this, "registration", "you have successfully registered\nlog in to your account in the next window");
@@ -99,8 +87,4 @@ void RegisterWindow::cancelClicked() {
 void RegisterWindow::changePasswordDisplay() {
 	if (showPassword->isChecked()) repeatPassword->setEchoMode(QLineEdit::Normal);
 	else repeatPassword->setEchoMode(QLineEdit::Password);
-}
-
-RegisterWindow::~RegisterWindow() {
-	db.close();
 }

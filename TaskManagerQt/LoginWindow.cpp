@@ -1,7 +1,9 @@
 #include "LoginWindow.h"
 
-LoginWindow::LoginWindow(QWidget* parent) : QDialog(parent) {
+LoginWindow::LoginWindow(DatabaseManager* dbManager, QWidget* parent) : QDialog(parent) {
 	setMinimumSize(500, 300);
+
+	this->dbManager = dbManager;
 
 	QLabel* loginText = new QLabel("Login:");
 	QLabel* passwordText = new QLabel("Password:");
@@ -56,36 +58,21 @@ void LoginWindow::loginUser() {
 		QMessageBox::warning(this, "error", "fill in all fields");
 		return;
 	}
-	db = QSqlDatabase::database();
-	if (!db.open()) {
-		QMessageBox::warning(this, "error", "open database error");
-		return;
-	}
-	bool isExist = false;
-	QSqlQuery query;
-	query.prepare("SELECT id, login FROM users WHERE login = :login AND password = :password;");
-	query.bindValue(":login", login->text().simplified());
-	query.bindValue(":password", password->text().simplified());
-	if (!query.exec()) {
-		QMessageBox::warning(this, "error", "select error: " + query.lastError().text());
-		return;
-	}
-	while (query.next()) {
-		QSettings settings("Paket", "TaskManagerQt");
-		settings.setValue("currentUserId", query.value(0).toInt());
-		if (remember->isChecked()) settings.setValue("remember", 1);
-		else settings.setValue("remember", 0);
-		isExist = true;
-	}
-	if (!isExist) {
+	bool rememberStatus = remember->isChecked() ? 1 : 0;
+	QString errorText = dbManager->logInToAccount(login->text().simplified(), password->text().simplified(), rememberStatus);
+	if (errorText == "false") {
 		QMessageBox::warning(this, "error", "user not found");
+		return;
+	}
+	if (errorText != "true") {
+		QMessageBox::warning(this, "error", errorText);
 		return;
 	}
 	accept();
 }
 
 void LoginWindow::openRegisterWindow() {
-	RegisterWindow window(this);
+	RegisterWindow window(dbManager, this);
 	window.exec();
 }
 
