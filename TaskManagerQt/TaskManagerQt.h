@@ -4,6 +4,7 @@
 #include "LoginWindow.h"
 #include "TaskDelegator.h"
 #include "TaskModel.h"
+#include "TaskSortProxyModel.h"
 #include <QMainWindow>
 #include <QWidget>
 #include <QHBoxLayout>
@@ -25,7 +26,6 @@
 #include <QApplication>
 #include <QAction>
 #include <QMenuBar>
-#include <QSortFilterProxyModel>
 #include <QModelIndex>
 
 class TaskManagerQt : public QMainWindow {
@@ -48,6 +48,6 @@ private:
     QLabel* infoWidget;
     QLineEdit* line;
     TaskModel* model;
-    QSortFilterProxyModel* proxy;
+    TaskSortProxyModel* proxy;
     TaskDelegator* delegator;
 };

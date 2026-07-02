@@ -12,7 +12,7 @@ TaskManagerQt::TaskManagerQt(QWidget *parent) : QMainWindow(parent) {
     restoreGeometry(settings.value("geometry").toByteArray());
     
     model = new TaskModel(settings.value("currentUserId").toInt());
-    proxy = new QSortFilterProxyModel(this);
+    proxy = new TaskSortProxyModel(this);
     proxy->setSourceModel(model);
 
     delegator = new TaskDelegator(this);
@@ -160,8 +160,12 @@ void TaskManagerQt::sortTasks(int index) {
         proxy->sort(0);
         break;
     case 3:
+        proxy->setSortRole(TaskModel::Roles::DeadlineRole);
+        proxy->sort(0, Qt::DescendingOrder);
         break;
     case 4:
+        proxy->setSortRole(TaskModel::Roles::DeadlineRole);
+        proxy->sort(0);
         break;
     case 5:
         proxy->setSortRole(TaskModel::Roles::CompletedRole);
@@ -172,8 +176,12 @@ void TaskManagerQt::sortTasks(int index) {
         proxy->sort(0, Qt::DescendingOrder);
         break;
     case 7:
+        proxy->setSortRole(TaskModel::Roles::CreatedAtRole);
+        proxy->sort(0);
         break;
     case 8:
+        proxy->setSortRole(TaskModel::Roles::CreatedAtRole);
+        proxy->sort(0, Qt::DescendingOrder);
         break;
     }
     list->blockSignals(false);
@@ -199,7 +207,6 @@ void TaskManagerQt::handCreateData(const CreateTaskWindow::TaskData& data) {
         QMessageBox::warning(this, "error", result);
         return;
     }
-    list->setCurrentIndex(model->index(model->rowCount() - 1));
     statusBar()->showMessage("successfully added", 3000);
 }
 
