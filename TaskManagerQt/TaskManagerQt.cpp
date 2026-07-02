@@ -1,14 +1,10 @@
 #include "TaskManagerQt.h"
 
-QString priorityToQString(QString priority) {
+QString priorityToQString(const QString& priority) {
     if (priority == "1") return "Low";
     if (priority == "2") return "Medium";
     if (priority == "3") return "High";
     return "None";
-}
-
-QString taskTitle(const QString& priority, const QString& title, const QString& deadline) {
-    return "[" + priority + "] " + title + "\nDue: " + deadline;
 }
 
 TaskManagerQt::TaskManagerQt(QWidget *parent) : QMainWindow(parent) {
@@ -19,8 +15,11 @@ TaskManagerQt::TaskManagerQt(QWidget *parent) : QMainWindow(parent) {
     proxy = new QSortFilterProxyModel(this);
     proxy->setSourceModel(model);
 
+    delegator = new TaskDelegator(this);
+
     list = new QListView();
     list->setModel(proxy);
+    list->setItemDelegate(delegator);
 
     QMenu* menu = menuBar()->addMenu("Account");
     QAction* exit = menu->addAction("Exit");
@@ -89,6 +88,8 @@ TaskManagerQt::TaskManagerQt(QWidget *parent) : QMainWindow(parent) {
     connect(markCompleted, &QPushButton::clicked, this, &TaskManagerQt::markAsCompleted);
     connect(comboBox, &QComboBox::currentIndexChanged, this, &TaskManagerQt::sortTasks);
     connect(exit, &QAction::triggered, this, &TaskManagerQt::exitAccount);
+    connect(line, &QLineEdit::textChanged, proxy, &QSortFilterProxyModel::setFilterFixedString);
+    connect(list, &QListView::clicked, this, &TaskManagerQt::showTask);
 
     mainWidget->setLayout(hbox);
 
@@ -106,9 +107,14 @@ void TaskManagerQt::deleteTask() {
         QMessageBox::warning(this, "error", "shoose the task");
         return;
     }
+    QString result;
     QString msg = "Delete selected task?\nThe action cannot be undone";
     int ret = QMessageBox::question(this, "delete task", msg, QMessageBox::Yes | QMessageBox::No);
-    if (ret == QMessageBox::Yes) model->deleteTask(proxy->mapToSource(list->currentIndex()).data(Qt::UserRole).toInt());
+    if (ret == QMessageBox::Yes) result = model->deleteTask(proxy->mapToSource(list->currentIndex()).data(Qt::UserRole).toInt());
+    if (result != "") {
+        QMessageBox::warning(this, "error", result);
+        return;
+    }
     statusBar()->showMessage("successfully deleted", 3000);
 }
 
@@ -131,8 +137,13 @@ void TaskManagerQt::markAsCompleted() {
         QMessageBox::warning(this, "error", "shoose the task");
         return;
     }
+    QString result;
     int newStatus = (proxy->mapToSource(list->currentIndex()).data(TaskModel::Roles::CompletedRole).toInt() == 0) ? 1 : 0;
-    model->markCompleted(proxy->mapToSource(list->currentIndex()).data(TaskModel::Roles::IdRole).toInt(), proxy->mapToSource(list->currentIndex()).data(TaskModel::Roles::CompletedRole).toInt());
+    result = model->markCompleted(proxy->mapToSource(list->currentIndex()).data(TaskModel::Roles::IdRole).toInt(), proxy->mapToSource(list->currentIndex()).data(TaskModel::Roles::CompletedRole).toInt());
+    if (result != "") {
+        QMessageBox::warning(this, "error", result);
+        return;
+    }
     statusBar()->showMessage("successfully marked", 3000);
 }
 
@@ -168,14 +179,37 @@ void TaskManagerQt::sortTasks(int index) {
     list->blockSignals(false);
 }
 
+void TaskManagerQt::showTask(const QModelIndex& index) {
+    QString priorityText = priorityToQString(index.data(TaskModel::Roles::PriorityRole).toString());
+    QString statusText = index.data(TaskModel::Roles::CompletedRole).toBool() == 1 ? "Completed" : "Not Completed";
+    QString text = "Title: " + index.data(TaskModel::Roles::TitleRole).toString() +
+        "\nDescription: " + index.data(TaskModel::Roles::DescriptionRole).toString() +
+        "\nPriority: " + priorityText +
+        "\nDeadline: " + index.data(TaskModel::Roles::DeadlineRole).toString() +
+        "\nStatus: " + statusText +
+        "\nCreated at: " + index.data(TaskModel::Roles::CreatedAtRole).toString() +
+        "\nId: " + index.data(TaskModel::Roles::IdRole).toString();
+    infoWidget->setText(text);
+}
+
 void TaskManagerQt::handCreateData(const CreateTaskWindow::TaskData& data) {
-    model->createTask(data);
+    QString result;
+    result = model->createTask(data);
+    if (result != "") {
+        QMessageBox::warning(this, "error", result);
+        return;
+    }
     list->setCurrentIndex(model->index(model->rowCount() - 1));
     statusBar()->showMessage("successfully added", 3000);
 }
 
 void TaskManagerQt::handEditData(const CreateTaskWindow::TaskData& data) {
-    model->editTask(data, proxy->mapToSource(list->currentIndex()).data(TaskModel::Roles::IdRole).toInt());
+    QString result;
+    result = model->editTask(data, proxy->mapToSource(list->currentIndex()).data(TaskModel::Roles::IdRole).toInt());
+    if (result != "") {
+        QMessageBox::warning(this, "error", result);
+        return;
+    }
     statusBar()->showMessage("successfully edited", 3000);
 }
 

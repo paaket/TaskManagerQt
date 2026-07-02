@@ -2,6 +2,7 @@
 #include "CreateTaskWindow.h"
 #include "EditTaskWindow.h"
 #include "LoginWindow.h"
+#include "TaskDelegator.h"
 #include "TaskModel.h"
 #include <QMainWindow>
 #include <QWidget>
@@ -26,7 +27,6 @@
 #include <QMenuBar>
 #include <QSortFilterProxyModel>
 #include <QModelIndex>
-#include <QDebug>
 
 class TaskManagerQt : public QMainWindow {
     Q_OBJECT
@@ -39,6 +39,7 @@ private slots:
     void editTask();
     void markAsCompleted();
     void sortTasks(int index);
+    void showTask(const QModelIndex& index);
     void handCreateData(const CreateTaskWindow::TaskData& data);
     void handEditData(const CreateTaskWindow::TaskData& data);
     void exitAccount();
@@ -48,4 +49,5 @@ private:
     QLineEdit* line;
     TaskModel* model;
     QSortFilterProxyModel* proxy;
+    TaskDelegator* delegator;
 };
