@@ -1,5 +1,6 @@
 #pragma once
 #include "RegisterWindow.h"
+#include "DatabaseManager.h"
 #include <QDialog>
 #include <QWidget>
 #include <QLabel>
@@ -9,9 +10,6 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
-#include <QSqlDatabase>
-#include <QSqlQuery>
-#include <QSqlError>
 #include <QMessageBox>
 #include <QString>
 #include <QApplication>
@@ -20,7 +18,7 @@
 class LoginWindow : public QDialog {
 	Q_OBJECT
 public:
-	LoginWindow(QWidget* parent = nullptr);
+	LoginWindow(DatabaseManager* dbManager, QWidget* parent = nullptr);
 private slots:
 	void openRegisterWindow();
 	void loginUser();
@@ -30,5 +28,5 @@ private:
 	QLineEdit* password;
 	QCheckBox* remember;
 	QCheckBox* showPassword;
-	QSqlDatabase db;
+	DatabaseManager* dbManager;
 };

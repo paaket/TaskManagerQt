@@ -7,11 +7,13 @@ QString priorityToQString(const QString& priority) {
     return "None";
 }
 
-TaskManagerQt::TaskManagerQt(QWidget *parent) : QMainWindow(parent) {
+TaskManagerQt::TaskManagerQt(DatabaseManager* dbManager, QWidget *parent) : QMainWindow(parent) {
+    this->dbManager = dbManager;
+
     QSettings settings("Paket", "TaskManagerQt");
     restoreGeometry(settings.value("geometry").toByteArray());
     
-    model = new TaskModel(settings.value("currentUserId").toInt());
+    model = new TaskModel(settings.value("currentUserId").toInt(), dbManager);
     proxy = new TaskSortProxyModel(this);
     proxy->setSourceModel(model);
 
@@ -139,7 +141,7 @@ void TaskManagerQt::markAsCompleted() {
     }
     QString result;
     int newStatus = (proxy->mapToSource(list->currentIndex()).data(TaskModel::Roles::CompletedRole).toInt() == 0) ? 1 : 0;
-    result = model->markCompleted(proxy->mapToSource(list->currentIndex()).data(TaskModel::Roles::IdRole).toInt(), proxy->mapToSource(list->currentIndex()).data(TaskModel::Roles::CompletedRole).toInt());
+    result = model->markCompleted(proxy->mapToSource(list->currentIndex()).data(TaskModel::Roles::IdRole).toInt(), newStatus);
     if (result != "") {
         QMessageBox::warning(this, "error", result);
         return;

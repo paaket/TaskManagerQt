@@ -1,12 +1,10 @@
 #pragma once
 #include <QABstractListModel>
 #include <QVector>
-#include <QSqlDatabase>
-#include <QSqlQuery>
-#include <QSqlError>
 #include <QModelIndex>
 #include "Task.h"
 #include "CreateTaskWindow.h"
+#include "DatabaseManager.h"
 
 class TaskModel : public QAbstractListModel {
 public:
@@ -20,7 +18,7 @@ public:
 		CompletedRole,
 		CreatedAtRole
 	};
-	TaskModel(int userId, QObject* parenr = nullptr);
+	TaskModel(int userId, DatabaseManager* dbManager, QObject* parenr = nullptr);
 	void addTask(int id, int user_id, QString title, QString description, int priority, QString deadline, bool completed, QString createdAt);
 	QString deleteTask(int id);
 	QString editTask(const CreateTaskWindow::TaskData& data, int id);
@@ -31,5 +29,5 @@ public:
 private:
 	QVector<Task> tasks;
 	int userId;
-	QSqlDatabase db;
+	DatabaseManager* dbManager;
 };

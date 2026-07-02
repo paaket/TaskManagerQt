@@ -5,6 +5,7 @@
 #include "TaskDelegator.h"
 #include "TaskModel.h"
 #include "TaskSortProxyModel.h"
+#include "DatabaseManager.h"
 #include <QMainWindow>
 #include <QWidget>
 #include <QHBoxLayout>
@@ -31,7 +32,7 @@
 class TaskManagerQt : public QMainWindow {
     Q_OBJECT
 public:
-    TaskManagerQt(QWidget* parent = nullptr);
+    TaskManagerQt(DatabaseManager* dbManager, QWidget* parent = nullptr);
     ~TaskManagerQt();
 private slots:
     void addTask();
@@ -50,4 +51,5 @@ private:
     TaskModel* model;
     TaskSortProxyModel* proxy;
     TaskDelegator* delegator;
+    DatabaseManager* dbManager;
 };

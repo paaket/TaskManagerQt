@@ -1,16 +1,12 @@
 #include "TaskModel.h"
 
-TaskModel::TaskModel(int userId, QObject* parent) : QAbstractListModel(parent) {
+TaskModel::TaskModel(int userId, DatabaseManager* dbManager, QObject* parent) : QAbstractListModel(parent) {
 	this->userId = userId;
-    db = QSqlDatabase::database();
+    this->dbManager = dbManager;
 
-    QSqlQuery query;
-    query.prepare("SELECT * FROM tasks WHERE user_id = :user_id");
-    query.bindValue(":user_id", userId);
-    if (!query.exec()) return;
-    while (query.next()) {
-        addTask(query.value(0).toInt(), query.value(1).toInt(), query.value(2).toString(), query.value(3).toString(),
-            query.value(4).toInt(), query.value(5).toString(), query.value(6).toBool(), query.value(7).toString());
+    QVector<Task> tempTasks = dbManager->findTasksById(userId);
+    for (Task task : tempTasks) {
+        addTask(task.id, task.userId, task.title, task.description, task.priority, task.deadline, task.completed, task.createdAt);
     }
 }
 
@@ -39,10 +35,8 @@ void TaskModel::addTask(int id, int user_id, QString title, QString description,
 }
 
 QString TaskModel::deleteTask(int id) {
-    QSqlQuery query;
-    query.prepare("DELETE FROM tasks WHERE id = :id");
-    query.bindValue(":id", id);
-    if (!query.exec()) return "delete error: " + query.lastError().text();
+    QString errorText = dbManager->deleteTaskBtId(id);
+    if (errorText != "") return errorText;
 
     int currentIndex = -1;
     for (int i = 0; i < tasks.size(); i++) if (tasks[i].id == id) currentIndex = i;
@@ -53,14 +47,8 @@ QString TaskModel::deleteTask(int id) {
 }
 
 QString TaskModel::editTask(const CreateTaskWindow::TaskData& data, int id) {
-    QSqlQuery query;
-    query.prepare("UPDATE tasks SET title = :title, description = :description, priority = :priority, deadline = :deadline WHERE id = :id;");
-    query.bindValue(":title", data.title);
-    query.bindValue(":description", data.description);
-    query.bindValue(":priority", data.priority);
-    query.bindValue(":deadline", data.deadline);
-    query.bindValue(":id", id);
-    if (!query.exec()) return "update error: " + query.lastError().text();
+    QString errorText = dbManager->updateTask(data, id);
+    if (errorText != "") return errorText;
 
     int currentIndex = - 1;
     for (int i = 0; i < tasks.size(); i++) if (tasks[i].id == id) currentIndex = i;
@@ -75,33 +63,24 @@ QString TaskModel::editTask(const CreateTaskWindow::TaskData& data, int id) {
 }
 
 QString TaskModel::markCompleted(int id, int newState) {
-    QSqlQuery query;
-    query.prepare("UPDATE tasks SET completed = :completed WHERE id = :id");
-    query.bindValue(":completed", newState);
-    query.bindValue(":id", id);
-    if (!query.exec()) return "update error: " + query.lastError().text();
+    QString errorText = dbManager->markTaskCompleted(id, newState);
+    if (errorText != "") return errorText;
 
     int currentIndex = -1;
     for (int i = 0; i < tasks.size(); i++) if (tasks[i].id == id) currentIndex = i;
 
     tasks[currentIndex].completed = newState;
+    QModelIndex ind = index(currentIndex, 0);
+    emit dataChanged(ind, ind, { Qt::DisplayRole, Roles::CompletedRole });
     return "";
 }
 
 QString TaskModel::createTask(const CreateTaskWindow::TaskData& data) {
-    QSqlQuery query;
-    query.prepare("INSERT INTO tasks(user_id, title, description, priority, deadline, completed, created_at) VALUES (:user_id, :title, :description, :priority, :deadline, :completed, :created_at)");
-    query.bindValue(":user_id", userId);
-    query.bindValue(":title", data.title);
-    query.bindValue(":description", data.description);
-    query.bindValue(":priority", data.priority);
-    query.bindValue(":deadline", data.deadline);
-    query.bindValue(":completed", 0);
-    query.bindValue(":created_at", data.createdAt);
-    if (!query.exec()) return "insert error: " + query.lastError().text();
+    QString errorText = dbManager->createTask(data, userId);
+    if (errorText.startsWith("insert error")) return errorText;
     
     beginInsertRows(QModelIndex(), tasks.size(), tasks.size());
-    tasks.append(Task{ query.lastInsertId().toInt(), userId,  data.title, data.description, data.priority, data.deadline, 0, data.createdAt});
+    tasks.append(Task{ errorText.toInt(), userId,  data.title, data.description, data.priority, data.deadline, 0, data.createdAt});
     endInsertRows();
     return "";
 }
