@@ -38,20 +38,21 @@ void TaskModel::addTask(int id, int user_id, QString title, QString description,
     endInsertRows();
 }
 
-void TaskModel::deleteTask(int id) {
+QString TaskModel::deleteTask(int id) {
     QSqlQuery query;
     query.prepare("DELETE FROM tasks WHERE id = :id");
     query.bindValue(":id", id);
-    if (!query.exec()) return;
+    if (!query.exec()) return "delete error: " + query.lastError().text();
 
-    int currentIndex;
+    int currentIndex = -1;
     for (int i = 0; i < tasks.size(); i++) if (tasks[i].id == id) currentIndex = i;
     beginRemoveRows(QModelIndex(), currentIndex, currentIndex);
     tasks.removeAt(currentIndex);
     endRemoveRows();
+    return "";
 }
 
-void TaskModel::editTask(const CreateTaskWindow::TaskData& data, int id) {
+QString TaskModel::editTask(const CreateTaskWindow::TaskData& data, int id) {
     QSqlQuery query;
     query.prepare("UPDATE tasks SET title = :title, description = :description, priority = :priority, deadline = :deadline WHERE id = :id;");
     query.bindValue(":title", data.title);
@@ -59,9 +60,9 @@ void TaskModel::editTask(const CreateTaskWindow::TaskData& data, int id) {
     query.bindValue(":priority", data.priority);
     query.bindValue(":deadline", data.deadline);
     query.bindValue(":id", id);
-    if (!query.exec()) return;
+    if (!query.exec()) return "update error: " + query.lastError().text();
 
-    int currentIndex;
+    int currentIndex = - 1;
     for (int i = 0; i < tasks.size(); i++) if (tasks[i].id == id) currentIndex = i;
 
     tasks[currentIndex].title = data.title;
@@ -70,22 +71,24 @@ void TaskModel::editTask(const CreateTaskWindow::TaskData& data, int id) {
     tasks[currentIndex].deadline = data.deadline;
     QModelIndex ind = index(currentIndex, 0);
     emit dataChanged(ind, ind, {Qt::DisplayRole, Roles::TitleRole, Roles::DescriptionRole, Roles::PriorityRole, Roles::DeadlineRole});
+    return "";
 }
 
-void TaskModel::markCompleted(int id, int newState) {
+QString TaskModel::markCompleted(int id, int newState) {
     QSqlQuery query;
     query.prepare("UPDATE tasks SET completed = :completed WHERE id = :id");
     query.bindValue(":completed", newState);
     query.bindValue(":id", id);
-    if (!query.exec()) return;
+    if (!query.exec()) return "update error: " + query.lastError().text();
 
-    int currentIndex;
+    int currentIndex = -1;
     for (int i = 0; i < tasks.size(); i++) if (tasks[i].id == id) currentIndex = i;
 
     tasks[currentIndex].completed = newState;
+    return "";
 }
 
-void TaskModel::createTask(const CreateTaskWindow::TaskData& data) {
+QString TaskModel::createTask(const CreateTaskWindow::TaskData& data) {
     QSqlQuery query;
     query.prepare("INSERT INTO tasks(user_id, title, description, priority, deadline, completed, created_at) VALUES (:user_id, :title, :description, :priority, :deadline, :completed, :created_at)");
     query.bindValue(":user_id", userId);
@@ -95,9 +98,10 @@ void TaskModel::createTask(const CreateTaskWindow::TaskData& data) {
     query.bindValue(":deadline", data.deadline);
     query.bindValue(":completed", 0);
     query.bindValue(":created_at", data.createdAt);
-    if (!query.exec()) return;
+    if (!query.exec()) return "insert error: " + query.lastError().text();
     
     beginInsertRows(QModelIndex(), tasks.size(), tasks.size());
     tasks.append(Task{ query.lastInsertId().toInt(), userId,  data.title, data.description, data.priority, data.deadline, 0, data.createdAt});
     endInsertRows();
+    return "";
 }

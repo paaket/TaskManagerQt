@@ -3,8 +3,8 @@
 #include <QVector>
 #include <QSqlDatabase>
 #include <QSqlQuery>
+#include <QSqlError>
 #include <QModelIndex>
-#include <QDebug>
 #include "Task.h"
 #include "CreateTaskWindow.h"
 
@@ -22,10 +22,10 @@ public:
 	};
 	TaskModel(int userId, QObject* parenr = nullptr);
 	void addTask(int id, int user_id, QString title, QString description, int priority, QString deadline, bool completed, QString createdAt);
-	void deleteTask(int id);
-	void editTask(const CreateTaskWindow::TaskData& data, int id);
-	void markCompleted(int id, int newState);
-	void createTask(const CreateTaskWindow::TaskData& data);
+	QString deleteTask(int id);
+	QString editTask(const CreateTaskWindow::TaskData& data, int id);
+	QString markCompleted(int id, int newState);
+	QString createTask(const CreateTaskWindow::TaskData& data);
 	virtual QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
 	virtual int rowCount(const QModelIndex& parent = QModelIndex()) const override;
 private:
