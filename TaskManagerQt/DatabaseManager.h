@@ -18,12 +18,13 @@ public:
 	QString addNewUser(const QString& login, const QString& password);
 	QString logInToAccount(const QString& login, const QString& password, bool remember);
 	QVector<Task> findTasksById(int userId);
-	QString deleteTaskBtId(int id);
+	QString deleteTaskById(int id);
 	QString updateTask(const CreateTaskWindow::TaskData& data, int id);
 	QString markTaskCompleted(int id, int newState);
 	QString createTask(const CreateTaskWindow::TaskData& data, int userId);
 	User findUserDataById(int userId);
 	QString updateUser(const User& userUpd);
+	QString deleteAccountById(int uderId);
 	~DatabaseManager();
 private:
 	QSqlDatabase db;

@@ -8,12 +8,13 @@ bool DatabaseManager::open() {
 
 bool DatabaseManager::createUsersDatabase() {
 	QSqlQuery query;
+	query.exec("PRAGMA foreign_keys = ON;");
 	return query.exec("CREATE TABLE IF NOT EXISTS users(id INTEGER PRIMARY KEY AUTOINCREMENT, login TEXT UNIQUE NOT NULL, password TEXT NOT NULL);");
 }
 
 bool DatabaseManager::createTasksDatabase() {
 	QSqlQuery query;
-	return query.exec("CREATE TABLE IF NOT EXISTS tasks(id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, title TEXT NOT NULL, description TEXT NOT NULL, priority INTEGER NOT NULL, deadline TEXT NOT NULL, completed INTEGER NOT NULL, created_at TEXT NOT NULL, FOREIGN KEY (user_id) REFERENCES users (id));");
+	return query.exec("CREATE TABLE IF NOT EXISTS tasks(id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, title TEXT NOT NULL, description TEXT NOT NULL, priority INTEGER NOT NULL, deadline TEXT NOT NULL, completed INTEGER NOT NULL, created_at TEXT NOT NULL, FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE);");
 }
 
 bool DatabaseManager::checkLogin(const QString& login) {
@@ -61,7 +62,7 @@ QVector<Task> DatabaseManager::findTasksById(int userId) {
 	return tasks;
 }
 
-QString DatabaseManager::deleteTaskBtId(int id) {
+QString DatabaseManager::deleteTaskById(int id) {
 	QSqlQuery query;
 	query.prepare("DELETE FROM tasks WHERE id = :id");
 	query.bindValue(":id", id);
@@ -125,6 +126,14 @@ QString DatabaseManager::updateUser(const User& userUpd) {
 	query.bindValue(":password", userUpd.password);
 	query.bindValue(":id", userUpd.id);
 	if (!query.exec()) return "update error: " + query.lastError().text();
+	return "";
+}
+
+QString DatabaseManager::deleteAccountById(int userId) {
+	QSqlQuery query;
+	query.prepare("DELETE FROM users WHERE id = :id;");
+	query.bindValue(":id", userId);
+	if (!query.exec()) return "delete error: " + query.lastError().text();
 	return "";
 }
 
