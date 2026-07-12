@@ -24,7 +24,9 @@ TaskManagerQt::TaskManagerQt(DatabaseManager* dbManager, QWidget *parent) : QMai
     list->setItemDelegate(delegator);
 
     QMenu* menu = menuBar()->addMenu("Account");
-    QAction* exit = menu->addAction("Exit");
+    QAction* edit = menu->addAction("Edit account");
+    QAction* deleteAccount = menu->addAction("Delete account");
+    QAction* exit = menu->addAction("Log out");
 
     QWidget* mainWidget = new QWidget(this);
     setCentralWidget(mainWidget);
@@ -90,6 +92,7 @@ TaskManagerQt::TaskManagerQt(DatabaseManager* dbManager, QWidget *parent) : QMai
     connect(markCompleted, &QPushButton::clicked, this, &TaskManagerQt::markAsCompleted);
     connect(comboBox, &QComboBox::currentIndexChanged, this, &TaskManagerQt::sortTasks);
     connect(exit, &QAction::triggered, this, &TaskManagerQt::exitAccount);
+    connect(edit, &QAction::triggered, this, &TaskManagerQt::editAccount);
     connect(line, &QLineEdit::textChanged, proxy, &QSortFilterProxyModel::setFilterFixedString);
     connect(list, &QListView::clicked, this, &TaskManagerQt::showTask);
 
@@ -226,6 +229,15 @@ void TaskManagerQt::exitAccount() {
     QSettings settings("Paket", "TaskManagerQt");
     settings.remove("currentUserId");
     QApplication::quit();
+}
+
+void TaskManagerQt::editAccount() {
+    EditUserWindow window(dbManager, this, model->getCurrentUser());
+    window.exec();
+}
+
+void TaskManagerQt::deleteAccount() {
+
 }
 
 TaskManagerQt::~TaskManagerQt() {

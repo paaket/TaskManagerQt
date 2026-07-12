@@ -6,6 +6,7 @@
 #include "TaskModel.h"
 #include "TaskSortProxyModel.h"
 #include "DatabaseManager.h"
+#include "EditUserWindow.h"
 #include <QMainWindow>
 #include <QWidget>
 #include <QHBoxLayout>
@@ -44,6 +45,7 @@ private slots:
     void handCreateData(const CreateTaskWindow::TaskData& data);
     void handEditData(const CreateTaskWindow::TaskData& data);
     void exitAccount();
+    void editAccount();
 private:
     QListView* list;
     QLabel* infoWidget;
