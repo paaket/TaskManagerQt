@@ -5,8 +5,8 @@ RegisterWindow::RegisterWindow(DatabaseManager* dbManager, QWidget* parent) : QD
 
 	this->dbManager = dbManager;
 
-	QLabel* loginText = new QLabel("Login:");
-	QLabel* passwordText = new QLabel("Password:");
+	loginText = new QLabel("Login:");
+	passwordText = new QLabel("Password:");
 	QLabel* repeatPasswordText = new QLabel("Repeat password:");
 	QLabel* showPasswordText = new QLabel("Show password:");
 
@@ -32,7 +32,7 @@ RegisterWindow::RegisterWindow(DatabaseManager* dbManager, QWidget* parent) : QD
 	grid->addWidget(showPasswordText, 3, 0);
 	grid->addWidget(showPassword, 3, 1);
 
-	QPushButton* registerBtn = new QPushButton("Register");
+	registerBtn = new QPushButton("Register");
 	QPushButton* cancelBtn = new QPushButton("Cancel");
 	registerBtn->setMaximumSize(130, 40);
 	cancelBtn->setMaximumSize(130, 40);

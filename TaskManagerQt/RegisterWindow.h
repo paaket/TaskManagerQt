@@ -11,23 +11,23 @@
 #include <QString>
 #include <QCheckBox>
 #include "DatabaseManager.h"
+#include "User.h"
 
 class RegisterWindow : public QDialog {
 	Q_OBJECT
 public:
-	struct User {
-		QString login;
-		QString password;
-	};
 	RegisterWindow(DatabaseManager* dbManager, QWidget* parent = nullptr);
-private slots:
-	void registerUser();
+protected slots:
+	virtual void registerUser();
 	void cancelClicked();
 	void changePasswordDisplay();
-private:
+protected:
 	QLineEdit* login;
 	QLineEdit* password;
 	QLineEdit* repeatPassword;
 	QCheckBox* showPassword;
+	QLabel* loginText;
+	QLabel* passwordText;
+	QPushButton* registerBtn;
 	DatabaseManager* dbManager;
 };
