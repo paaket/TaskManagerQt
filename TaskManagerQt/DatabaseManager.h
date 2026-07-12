@@ -7,6 +7,7 @@
 #include <QVector>
 #include "Task.h"
 #include "CreateTaskWindow.h"
+#include "User.h"
 
 class DatabaseManager {
 public:
@@ -21,6 +22,8 @@ public:
 	QString updateTask(const CreateTaskWindow::TaskData& data, int id);
 	QString markTaskCompleted(int id, int newState);
 	QString createTask(const CreateTaskWindow::TaskData& data, int userId);
+	User findUserDataById(int userId);
+	QString updateUser(const User& userUpd);
 	~DatabaseManager();
 private:
 	QSqlDatabase db;

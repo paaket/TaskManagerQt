@@ -104,6 +104,30 @@ QString DatabaseManager::createTask(const CreateTaskWindow::TaskData& data, int 
 	return query.lastInsertId().toString();
 }
 
+User DatabaseManager::findUserDataById(int userId) {
+	User user;
+	QSqlQuery query;
+	query.prepare("SELECT login, password FROM users WHERE id = :id");
+	query.bindValue(":id", userId);
+	if (!query.exec()) return user;
+	if (query.next()) {
+		user.id = userId;
+		user.login = query.value(0).toString();
+		user.password = query.value(1).toString();
+	}
+	return user;
+}
+
+QString DatabaseManager::updateUser(const User& userUpd) {
+	QSqlQuery query;
+	query.prepare("UPDATE users SET login = :login, password = :password WHERE id = :id;");
+	query.bindValue(":login", userUpd.login);
+	query.bindValue(":password", userUpd.password);
+	query.bindValue(":id", userUpd.id);
+	if (!query.exec()) return "update error: " + query.lastError().text();
+	return "";
+}
+
 DatabaseManager::~DatabaseManager() {
 	db.close(); 
 };
