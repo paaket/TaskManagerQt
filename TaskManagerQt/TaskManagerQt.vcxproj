@@ -83,6 +83,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="DeleteUserWindow.cpp" />
     <ClCompile Include="EditUserWindow.cpp" />
     <ClCompile Include="TaskDelegator.cpp" />
     <ClCompile Include="TaskModel.cpp" />
@@ -111,6 +112,7 @@
   <ItemGroup>
     <ClInclude Include="DatabaseManager.h" />
     <QtMoc Include="EditUserWindow.h" />
+    <ClInclude Include="DeleteUserWindow.h" />
     <ClInclude Include="Task.h" />
     <ClInclude Include="TaskDelegator.h" />
     <ClInclude Include="TaskModel.h" />

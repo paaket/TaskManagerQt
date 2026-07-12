@@ -93,6 +93,7 @@ TaskManagerQt::TaskManagerQt(DatabaseManager* dbManager, QWidget *parent) : QMai
     connect(comboBox, &QComboBox::currentIndexChanged, this, &TaskManagerQt::sortTasks);
     connect(exit, &QAction::triggered, this, &TaskManagerQt::exitAccount);
     connect(edit, &QAction::triggered, this, &TaskManagerQt::editAccount);
+    connect(deleteAccount, &QAction::triggered, this, &TaskManagerQt::deleteAccount);
     connect(line, &QLineEdit::textChanged, proxy, &QSortFilterProxyModel::setFilterFixedString);
     connect(list, &QListView::clicked, this, &TaskManagerQt::showTask);
 
@@ -237,7 +238,11 @@ void TaskManagerQt::editAccount() {
 }
 
 void TaskManagerQt::deleteAccount() {
-
+    DeleteUserWindow window(model->getCurrentUser(), dbManager, this);
+    window.exec();
+    QSettings settings("Paket", "TaskManagerQt");
+    settings.remove("currentUserId");
+    QApplication::quit();
 }
 
 TaskManagerQt::~TaskManagerQt() {
