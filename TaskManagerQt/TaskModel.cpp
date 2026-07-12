@@ -36,7 +36,7 @@ void TaskModel::addTask(int id, int user_id, QString title, QString description,
 }
 
 QString TaskModel::deleteTask(int id) {
-    QString errorText = dbManager->deleteTaskBtId(id);
+    QString errorText = dbManager->deleteTaskById(id);
     if (errorText != "") return errorText;
 
     int currentIndex = -1;
