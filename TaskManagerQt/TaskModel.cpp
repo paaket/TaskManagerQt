@@ -1,8 +1,9 @@
 #include "TaskModel.h"
 
 TaskModel::TaskModel(int userId, DatabaseManager* dbManager, QObject* parent) : QAbstractListModel(parent) {
-	this->userId = userId;
     this->dbManager = dbManager;
+
+    user = dbManager->findUserDataById(userId);
 
     QVector<Task> tempTasks = dbManager->findTasksById(userId);
     for (Task task : tempTasks) {
@@ -76,11 +77,15 @@ QString TaskModel::markCompleted(int id, int newState) {
 }
 
 QString TaskModel::createTask(const CreateTaskWindow::TaskData& data) {
-    QString errorText = dbManager->createTask(data, userId);
+    QString errorText = dbManager->createTask(data, user.id);
     if (errorText.startsWith("insert error")) return errorText;
     
     beginInsertRows(QModelIndex(), tasks.size(), tasks.size());
-    tasks.append(Task{ errorText.toInt(), userId,  data.title, data.description, data.priority, data.deadline, 0, data.createdAt});
+    tasks.append(Task{ errorText.toInt(), user.id,  data.title, data.description, data.priority, data.deadline, 0, data.createdAt});
     endInsertRows();
     return "";
+}
+
+User TaskModel::getCurrentUser() {
+    return user;
 }

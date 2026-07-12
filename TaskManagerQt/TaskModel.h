@@ -5,6 +5,7 @@
 #include "Task.h"
 #include "CreateTaskWindow.h"
 #include "DatabaseManager.h"
+#include "User.h"
 
 class TaskModel : public QAbstractListModel {
 public:
@@ -24,10 +25,11 @@ public:
 	QString editTask(const CreateTaskWindow::TaskData& data, int id);
 	QString markCompleted(int id, int newState);
 	QString createTask(const CreateTaskWindow::TaskData& data);
+	User getCurrentUser();
 	virtual QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
 	virtual int rowCount(const QModelIndex& parent = QModelIndex()) const override;
 private:
 	QVector<Task> tasks;
-	int userId;
+	User user;
 	DatabaseManager* dbManager;
 };
