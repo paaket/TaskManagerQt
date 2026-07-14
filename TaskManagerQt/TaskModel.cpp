@@ -7,7 +7,7 @@ TaskModel::TaskModel(int userId, DatabaseManager* dbManager, QObject* parent) : 
 
     QVector<Task> tempTasks = dbManager->findTasksById(userId);
     for (Task task : tempTasks) {
-        addTask(task.id, task.userId, task.title, task.description, task.priority, task.deadline, task.completed, task.createdAt);
+        addTask(task.id, task.userId, task.folderId, task.title, task.description, task.priority, task.deadline, task.completed, task.createdAt);
     }
 }
 
@@ -16,6 +16,7 @@ QVariant TaskModel::data(const QModelIndex& index, int role) const {
 	if (role == Qt::DisplayRole) return tasks.at(index.row()).title;
     if (role == Roles::IdRole) return tasks.at(index.row()).id;
     if (role == Roles::UserIdRole) return tasks.at(index.row()).userId;
+    if (role == Roles::FolderIdRole) return tasks.at(index.row()).folderId;
     if (role == Roles::TitleRole) return tasks.at(index.row()).title;
     if (role == Roles::DescriptionRole) return tasks.at(index.row()).description;
     if (role == Roles::PriorityRole) return tasks.at(index.row()).priority;
@@ -29,9 +30,9 @@ int TaskModel::rowCount(const QModelIndex& parent) const {
 	return tasks.size();
 }
 
-void TaskModel::addTask(int id, int user_id, QString title, QString description, int priority, QString deadline, bool completed, QString createdAt) {
+void TaskModel::addTask(int id, int user_id, int folder_id, QString title, QString description, int priority, QString deadline, bool completed, QString createdAt) {
     beginInsertRows(QModelIndex(), tasks.size(), tasks.size());
-    tasks.append(Task{ id, user_id, title, description, priority, deadline, completed, createdAt });
+    tasks.append(Task{ id, user_id, folder_id, title, description, priority, deadline, completed, createdAt });
     endInsertRows();
 }
 
@@ -76,12 +77,12 @@ QString TaskModel::markCompleted(int id, int newState) {
     return "";
 }
 
-QString TaskModel::createTask(const CreateTaskWindow::TaskData& data) {
-    QString errorText = dbManager->createTask(data, user.id);
+QString TaskModel::createTask(const CreateTaskWindow::TaskData& data, int currentFolderId) {
+    QString errorText = dbManager->createTask(data, currentFolderId, user.id);
     if (errorText.startsWith("insert error")) return errorText;
     
     beginInsertRows(QModelIndex(), tasks.size(), tasks.size());
-    tasks.append(Task{ errorText.toInt(), user.id,  data.title, data.description, data.priority, data.deadline, 0, data.createdAt});
+    tasks.append(Task{ errorText.toInt(), user.id,  currentFolderId, data.title, data.description, data.priority, data.deadline, 0, data.createdAt});
     endInsertRows();
     return "";
 }
