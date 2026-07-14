@@ -2,6 +2,7 @@
 #include <QDialog>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
+#include <QGridLayout>
 #include <QLabel>
 #include <QPushButton>
 #include <QMessageBox>
@@ -12,13 +13,15 @@ class CreateFolderWindow : public QDialog {
 	Q_OBJECT
 public:
 	CreateFolderWindow(DatabaseManager* dbManager, int userId, QWidget* parent = nullptr);
-private slots:
-	void createBtnClicked();
-	void cancelBtnClicked();
+protected slots:
+	virtual void createBtnClicked();
+	virtual void cancelBtnClicked();
 signals:
 	void dataReady(const QString& title);
-private:
+protected:
 	QLineEdit* line;
+	QPushButton* createBtn;
+	QGridLayout* btnGrid;
 	int userId;
 	DatabaseManager* dbManager;
 };

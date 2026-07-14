@@ -15,16 +15,16 @@ CreateFolderWindow::CreateFolderWindow(DatabaseManager* dbManager, int userId, Q
 	lineHbox->addWidget(lineText);
 	lineHbox->addWidget(line);
 
-	QPushButton* createBtn = new QPushButton("Create");
+	createBtn = new QPushButton("Create");
 	QPushButton* cancelBtn = new QPushButton("Cancel");
 
-	QHBoxLayout* btnHbox = new QHBoxLayout();
-	btnHbox->addWidget(createBtn);
-	btnHbox->addWidget(cancelBtn);
+	btnGrid = new QGridLayout();
+	btnGrid->addWidget(createBtn, 0, 0);
+	btnGrid->addWidget(cancelBtn, 0, 1);
 
 	QVBoxLayout* vbox = new QVBoxLayout();
 	vbox->addLayout(lineHbox);
-	vbox->addLayout(btnHbox);
+	vbox->addLayout(btnGrid);
 
 	connect(createBtn, &QPushButton::clicked, this, &CreateFolderWindow::createBtnClicked);
 	connect(cancelBtn, &QPushButton::clicked, this, &CreateFolderWindow::cancelBtnClicked);
