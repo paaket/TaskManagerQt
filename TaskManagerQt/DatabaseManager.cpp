@@ -14,7 +14,12 @@ bool DatabaseManager::createUsersDatabase() {
 
 bool DatabaseManager::createTasksDatabase() {
 	QSqlQuery query;
-	return query.exec("CREATE TABLE IF NOT EXISTS tasks(id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, title TEXT NOT NULL, description TEXT NOT NULL, priority INTEGER NOT NULL, deadline TEXT NOT NULL, completed INTEGER NOT NULL, created_at TEXT NOT NULL, FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE);");
+	return query.exec("CREATE TABLE IF NOT EXISTS tasks(id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, folder_id INTEGER NOT NULL, title TEXT NOT NULL, description TEXT NOT NULL, priority INTEGER NOT NULL, deadline TEXT NOT NULL, completed INTEGER NOT NULL, created_at TEXT NOT NULL, FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE, FOREIGN KEY (folder_id) REFERENCES folders (id) ON DELETE CASCADE);");
+}
+
+bool DatabaseManager::createFoldersDatabase() {
+	QSqlQuery query;
+	return query.exec("CREATE TABLE IF NOT EXISTS folders(id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, title TEXT NOT NULL, FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE);");
 }
 
 bool DatabaseManager::checkLogin(const QString& login) {
@@ -56,10 +61,22 @@ QVector<Task> DatabaseManager::findTasksById(int userId) {
 	if (!query.exec()) return QVector<Task>{};
 	QVector<Task> tasks;
 	while (query.next()) {
-		tasks.append(Task{ query.value(0).toInt(), query.value(1).toInt(), query.value(2).toString(), query.value(3).toString(),
-			query.value(4).toInt(), query.value(5).toString(), query.value(6).toBool(), query.value(7).toString() });
+		tasks.append(Task{ query.value(0).toInt(), query.value(1).toInt(), query.value(2).toInt(), query.value(3).toString(), query.value(4).toString(),
+			query.value(5).toInt(), query.value(6).toString(), query.value(7).toBool(), query.value(8).toString() });
 	}
 	return tasks;
+}
+
+QVector<Folder> DatabaseManager::findFoldersByUserId(int userId) {
+	QSqlQuery query;
+	query.prepare("SELECT * FROM folders WHERE user_id = :user_id");
+	query.bindValue(":user_id", userId);
+	if (!query.exec()) return QVector<Folder>{};
+	QVector<Folder> folders;
+	while (query.next()) {
+		folders.append(Folder{ query.value(0).toInt(), query.value(1).toInt(), query.value(2).toString() });
+	}
+	return folders;
 }
 
 QString DatabaseManager::deleteTaskById(int id) {
@@ -91,10 +108,11 @@ QString DatabaseManager::markTaskCompleted(int id, int newState) {
 	return "";
 }
 
-QString DatabaseManager::createTask(const CreateTaskWindow::TaskData& data, int userId) {
+QString DatabaseManager::createTask(const CreateTaskWindow::TaskData& data, int folderId, int userId) {
 	QSqlQuery query;
-	query.prepare("INSERT INTO tasks(user_id, title, description, priority, deadline, completed, created_at) VALUES (:user_id, :title, :description, :priority, :deadline, :completed, :created_at)");
+	query.prepare("INSERT INTO tasks(user_id, folder_id, title, description, priority, deadline, completed, created_at) VALUES (:user_id, :folder_id, :title, :description, :priority, :deadline, :completed, :created_at)");
 	query.bindValue(":user_id", userId);
+	query.bindValue(":folder_id", folderId);
 	query.bindValue(":title", data.title);
 	query.bindValue(":description", data.description);
 	query.bindValue(":priority", data.priority);
@@ -135,6 +153,15 @@ QString DatabaseManager::deleteAccountById(int userId) {
 	query.bindValue(":id", userId);
 	if (!query.exec()) return "delete error: " + query.lastError().text();
 	return "";
+}
+
+QString DatabaseManager::createFolder(const QString& title, int userId) {
+	QSqlQuery query;
+	query.prepare("INSERT INTO folders(user_id, title) VALUES (:user_id, :title);");;
+	query.bindValue(":user_id", userId);
+	query.bindValue(":title", title);
+	if (!query.exec()) return "insert error: " + query.lastError().text();
+	return query.lastInsertId().toString();
 }
 
 DatabaseManager::~DatabaseManager() {
