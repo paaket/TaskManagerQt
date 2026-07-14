@@ -13,6 +13,7 @@ int main(int argc, char *argv[]) {
     if (!databaseManager.open()) return 0;
     
     if (!databaseManager.createUsersDatabase()) return 0;
+    if (!databaseManager.createFoldersDatabase()) return 0;
     if (!databaseManager.createTasksDatabase()) return 0;
 
     QSettings settings("Paket", "TaskManagerQt");

@@ -83,8 +83,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CreateFolderWindow.cpp" />
     <ClCompile Include="DeleteUserWindow.cpp" />
     <ClCompile Include="EditUserWindow.cpp" />
+    <ClCompile Include="FolderModel.cpp" />
     <ClCompile Include="TaskDelegator.cpp" />
     <ClCompile Include="TaskModel.cpp" />
     <ClCompile Include="TaskSortProxyModel.cpp" />
@@ -110,9 +112,12 @@
     <QtMoc Include="RegisterWindow.h" />
   </ItemGroup>
   <ItemGroup>
+    <QtMoc Include="CreateFolderWindow.h" />
     <ClInclude Include="DatabaseManager.h" />
     <QtMoc Include="EditUserWindow.h" />
     <ClInclude Include="DeleteUserWindow.h" />
+    <ClInclude Include="Folder.h" />
+    <ClInclude Include="FolderModel.h" />
     <ClInclude Include="Task.h" />
     <ClInclude Include="TaskDelegator.h" />
     <ClInclude Include="TaskModel.h" />

@@ -8,6 +8,8 @@
 #include "DatabaseManager.h"
 #include "EditUserWindow.h"
 #include "DeleteUserWindow.h"
+#include "FolderModel.h"
+#include "CreateFolderWindow.h"
 #include <QMainWindow>
 #include <QWidget>
 #include <QHBoxLayout>
@@ -30,6 +32,7 @@
 #include <QAction>
 #include <QMenuBar>
 #include <QModelIndex>
+#include <QDebug>
 
 class TaskManagerQt : public QMainWindow {
     Q_OBJECT
@@ -41,19 +44,24 @@ private slots:
     void deleteTask();
     void editTask();
     void markAsCompleted();
+    void addFolder();
     void sortTasks(int index);
     void showTask(const QModelIndex& index);
-    void handCreateData(const CreateTaskWindow::TaskData& data);
+    void handTaskCreateData(const CreateTaskWindow::TaskData& data);
+    void handFolderCreateData(const QString& title);
     void handEditData(const CreateTaskWindow::TaskData& data);
     void exitAccount();
     void editAccount();
     void deleteAccount();
+    void folderChanged(const QModelIndex& index);
 private:
-    QListView* list;
+    QListView* taskList;
+    QListView* folderList;
     QLabel* infoWidget;
     QLineEdit* line;
-    TaskModel* model;
-    TaskSortProxyModel* proxy;
-    TaskDelegator* delegator;
+    TaskModel* taskModel;
+    FolderModel* folderModel;
+    TaskSortProxyModel* taskProxy;
+    TaskDelegator* taskDelegator;
     DatabaseManager* dbManager;
 };
