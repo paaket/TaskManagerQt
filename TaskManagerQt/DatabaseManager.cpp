@@ -87,6 +87,14 @@ QString DatabaseManager::deleteTaskById(int id) {
 	return "";
 }
 
+QString DatabaseManager::deleteFolderById(int id) {
+	QSqlQuery query;
+	query.prepare("DELETE FROM folders WHERE id = :id");
+	query.bindValue(":id", id);
+	if (!query.exec()) return "delete error: " + query.lastError().text();
+	return "";
+}
+
 QString DatabaseManager::updateTask(const CreateTaskWindow::TaskData& data, int id) {
 	QSqlQuery query;
 	query.prepare("UPDATE tasks SET title = :title, description = :description, priority = :priority, deadline = :deadline WHERE id = :id;");
@@ -95,6 +103,15 @@ QString DatabaseManager::updateTask(const CreateTaskWindow::TaskData& data, int 
 	query.bindValue(":priority", data.priority);
 	query.bindValue(":deadline", data.deadline);
 	query.bindValue(":id", id);
+	if (!query.exec()) return "update error: " + query.lastError().text();
+	return "";
+}
+
+QString DatabaseManager::updadeFolder(const Folder& folder) {
+	QSqlQuery query;
+	query.prepare("UPDATE folders SET title = :title WHERE id = :id");
+	query.bindValue(":title", folder.title);
+	query.bindValue(":id", folder.id);
 	if (!query.exec()) return "update error: " + query.lastError().text();
 	return "";
 }

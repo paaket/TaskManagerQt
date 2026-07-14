@@ -22,7 +22,9 @@ public:
 	QVector<Task> findTasksById(int userId);
 	QVector<Folder> findFoldersByUserId(int userId);
 	QString deleteTaskById(int id);
+	QString deleteFolderById(int id);
 	QString updateTask(const CreateTaskWindow::TaskData& data, int id);
+	QString updadeFolder(const Folder& folder);
 	QString markTaskCompleted(int id, int newState);
 	QString createTask(const CreateTaskWindow::TaskData& data, int folderId, int userId);
 	User findUserDataById(int userId);
