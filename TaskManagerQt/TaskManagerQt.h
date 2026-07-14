@@ -10,6 +10,7 @@
 #include "DeleteUserWindow.h"
 #include "FolderModel.h"
 #include "CreateFolderWindow.h"
+#include "EditFolderWindow.h"
 #include <QMainWindow>
 #include <QWidget>
 #include <QHBoxLayout>
@@ -43,13 +44,16 @@ private slots:
     void addTask();
     void deleteTask();
     void editTask();
+    void editFolder();
     void markAsCompleted();
     void addFolder();
     void sortTasks(int index);
     void showTask(const QModelIndex& index);
     void handTaskCreateData(const CreateTaskWindow::TaskData& data);
     void handFolderCreateData(const QString& title);
-    void handEditData(const CreateTaskWindow::TaskData& data);
+    void handTaskEditData(const CreateTaskWindow::TaskData& data);
+    void handFolderEditData(const Folder& folder);
+    void handFolderDeleteData(int folderId);
     void exitAccount();
     void editAccount();
     void deleteAccount();

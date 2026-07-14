@@ -52,26 +52,26 @@ TaskManagerQt::TaskManagerQt(DatabaseManager* dbManager, QWidget *parent) : QMai
     infoWidget->setFont(infoWidgetFont);
     infoWidget->setAlignment(Qt::AlignTop);
 
-    QPushButton* addBtn = new QPushButton("add task");
-    QPushButton* deleteBtn = new QPushButton("delete task");
-    QPushButton* editBtn = new QPushButton("edit a task");
-    QPushButton* markCompleted = new QPushButton("mark as completed");
-    QPushButton* addFolder = new QPushButton("add folder");
-    QPushButton* btn = new QPushButton("btn");
+    QPushButton* addBtn = new QPushButton("Add a task");
+    QPushButton* deleteBtn = new QPushButton("Delete task");
+    QPushButton* editTaskBtn = new QPushButton("Edit task");
+    QPushButton* markCompleted = new QPushButton("Mark as completed");
+    QPushButton* addFolder = new QPushButton("Add folder");
+    QPushButton* editFolderBtn = new QPushButton("Edit folder");
     addBtn->setMinimumSize(130, 40);
     deleteBtn->setMinimumSize(130, 40);
-    editBtn->setMinimumSize(130, 40);
+    editTaskBtn->setMinimumSize(130, 40);
     markCompleted->setMinimumSize(130, 40);
     addFolder->setMinimumSize(130, 40);
-    btn->setMinimumSize(130, 40);
+    editFolderBtn->setMinimumSize(130, 40);
 
     QGridLayout* grid = new QGridLayout();
     grid->addWidget(addBtn, 0, 0);
     grid->addWidget(deleteBtn, 0, 1);
-    grid->addWidget(editBtn, 1, 0);
+    grid->addWidget(editTaskBtn, 1, 0);
     grid->addWidget(markCompleted, 1, 1);
     grid->addWidget(addFolder, 2, 0);
-    grid->addWidget(btn, 2, 1);
+    grid->addWidget(editFolderBtn, 2, 1);
 
     QVBoxLayout* vbox = new QVBoxLayout();
     vbox->addWidget(infoWidget);
@@ -107,7 +107,8 @@ TaskManagerQt::TaskManagerQt(DatabaseManager* dbManager, QWidget *parent) : QMai
 
     connect(addBtn, &QPushButton::clicked, this, &TaskManagerQt::addTask);
     connect(deleteBtn, &QPushButton::clicked, this, &TaskManagerQt::deleteTask);
-    connect(editBtn, &QPushButton::clicked, this, &TaskManagerQt::editTask);
+    connect(editTaskBtn, &QPushButton::clicked, this, &TaskManagerQt::editTask);
+    connect(editFolderBtn, &QPushButton::clicked, this, &TaskManagerQt::editFolder);
     connect(markCompleted, &QPushButton::clicked, this, &TaskManagerQt::markAsCompleted);
     connect(addFolder, &QPushButton::clicked, this, &TaskManagerQt::addFolder);
     connect(comboBox, &QComboBox::currentIndexChanged, this, &TaskManagerQt::sortTasks);
@@ -159,7 +160,21 @@ void TaskManagerQt::editTask() {
     taskProxy->mapToSource(taskList->currentIndex()).data(TaskModel::Roles::PriorityRole).toString(),
     taskProxy->mapToSource(taskList->currentIndex()).data(TaskModel::Roles::DeadlineRole).toString() };
     EditTaskWindow window(this, lst);
-    connect(&window, &EditTaskWindow::saveReady, this, &TaskManagerQt::handEditData);
+    connect(&window, &EditTaskWindow::saveReady, this, &TaskManagerQt::handTaskEditData);
+    window.exec();
+}
+
+void TaskManagerQt::editFolder() {
+    if (!folderList->currentIndex().isValid()) {
+        QMessageBox::warning(this, "error", "shoose the folder");
+        return;
+    }
+    Folder folder{ folderList->currentIndex().data(FolderModel::Roles::FolderIdRole).toInt(),
+        folderList->currentIndex().data(FolderModel::Roles::UserIdRole).toInt(),
+        folderList->currentIndex().data(FolderModel::Roles::TitleRole).toString() };
+    EditFolderWindow window(dbManager, taskModel->getCurrentUser().id, this, folder);
+    connect(&window, &EditFolderWindow::editFolder, this, &TaskManagerQt::handFolderEditData);
+    connect(&window, &EditFolderWindow::deleteFolder, this, &TaskManagerQt::handFolderDeleteData);
     window.exec();
 }
 
@@ -257,7 +272,7 @@ void TaskManagerQt::handFolderCreateData(const QString& title) {
     statusBar()->showMessage("successfully added", 3000);
 }
 
-void TaskManagerQt::handEditData(const CreateTaskWindow::TaskData& data) {
+void TaskManagerQt::handTaskEditData(const CreateTaskWindow::TaskData& data) {
     QString result;
     result = taskModel->editTask(data, taskProxy->mapToSource(taskList->currentIndex()).data(TaskModel::Roles::IdRole).toInt());
     if (result != "") {
@@ -265,6 +280,28 @@ void TaskManagerQt::handEditData(const CreateTaskWindow::TaskData& data) {
         return;
     }
     statusBar()->showMessage("successfully edited", 3000);
+}
+
+void TaskManagerQt::handFolderEditData(const Folder& folder) {
+    QString result = folderModel->updateFolder(folder);
+    if (result != "") {
+        QMessageBox::warning(this, "error", result);
+        return;
+    }
+    folderList->setViewMode(QListView::ListMode);
+    folderList->setViewMode(QListView::IconMode);
+    statusBar()->showMessage("successfully edited", 3000);
+}
+
+void TaskManagerQt::handFolderDeleteData(int folderId) {
+    QString result = folderModel->deleteFolder(folderId);
+    if (result != "") {
+        QMessageBox::warning(this, "error", result);
+        return;
+    }
+    taskList->setViewMode(QListView::ListMode);
+    taskList->setViewMode(QListView::IconMode);
+    statusBar()->showMessage("successfully deleted", 3000);
 }
 
 void TaskManagerQt::exitAccount() {

@@ -85,6 +85,7 @@
   <ItemGroup>
     <ClCompile Include="CreateFolderWindow.cpp" />
     <ClCompile Include="DeleteUserWindow.cpp" />
+    <ClCompile Include="EditFolderWindow.cpp" />
     <ClCompile Include="EditUserWindow.cpp" />
     <ClCompile Include="FolderModel.cpp" />
     <ClCompile Include="TaskDelegator.cpp" />
@@ -116,6 +117,7 @@
     <ClInclude Include="DatabaseManager.h" />
     <QtMoc Include="EditUserWindow.h" />
     <ClInclude Include="DeleteUserWindow.h" />
+    <QtMoc Include="EditFolderWindow.h" />
     <ClInclude Include="Folder.h" />
     <ClInclude Include="FolderModel.h" />
     <ClInclude Include="Task.h" />

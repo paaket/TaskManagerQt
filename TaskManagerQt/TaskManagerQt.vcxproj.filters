@@ -76,6 +76,9 @@
     <ClCompile Include="CreateFolderWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="EditFolderWindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="CreateTaskWindow.h">
@@ -97,6 +100,9 @@
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="CreateFolderWindow.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="EditFolderWindow.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>
