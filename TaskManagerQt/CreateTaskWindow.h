@@ -24,8 +24,8 @@ public:
 		QString createdAt;
 	};
 	CreateTaskWindow(QWidget* patent = nullptr);
-private slots:
-	void saveClicked();
+protected slots:
+	virtual void saveClicked();
 signals:
 	void saveReady(const TaskData& task);
 protected:
@@ -33,4 +33,6 @@ protected:
 	QComboBox* priority;
 	QDateEdit* deadline;
 	QTextEdit* description;
+	QGridLayout* grid;
+	QGridLayout* btnGrid;
 };

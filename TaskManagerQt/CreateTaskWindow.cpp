@@ -21,7 +21,7 @@ CreateTaskWindow::CreateTaskWindow(QWidget* parent) : QDialog(parent) {
 	description = new QTextEdit();
 	description->setPlaceholderText("enter description here");
 
-	QGridLayout* grid = new QGridLayout();
+	grid = new QGridLayout();
 	grid->addWidget(titleLbl, 0, 0);
 	grid->addWidget(title, 0, 1);
 	grid->addWidget(descriptionLbl, 1, 0, Qt::AlignTop);
@@ -31,14 +31,16 @@ CreateTaskWindow::CreateTaskWindow(QWidget* parent) : QDialog(parent) {
 	grid->addWidget(deadlineLbl, 3, 0);
 	grid->addWidget(deadline, 3, 1);
 	
+	QPushButton* saveBtn = new QPushButton("Save");
 
-	QPushButton* save = new QPushButton("Save");
+	btnGrid = new QGridLayout();
+	btnGrid->addWidget(saveBtn, 1, 0, 1, 2);
 	
 	QVBoxLayout* vbox = new QVBoxLayout(this);
 	vbox->addLayout(grid);
-	vbox->addWidget(save, 0, Qt::AlignRight);
+	vbox->addLayout(btnGrid);
 
-	connect(save, &QPushButton::clicked, this, &CreateTaskWindow::saveClicked);
+	connect(saveBtn, &QPushButton::clicked, this, &CreateTaskWindow::saveClicked);
 
 	setLayout(vbox);
 }
