@@ -87,6 +87,23 @@ QString TaskModel::createTask(const CreateTaskWindow::TaskData& data, int curren
     return "";
 }
 
+QString TaskModel::changeTasksFolder(int taskId, int folderId) {
+    QString errorText = dbManager->updateTasksFolder(taskId, folderId);
+    if (errorText != "") return errorText;
+
+    int currentIndex = -1;
+    for (int i = 0; i < tasks.size(); i++) if (tasks[i].id == taskId) currentIndex = i;
+
+    tasks[currentIndex].folderId = folderId;
+    QModelIndex ind = index(currentIndex, 0);
+    emit dataChanged(ind, ind, { Qt::DisplayRole, Roles::FolderIdRole });
+    return "";
+}
+
 User TaskModel::getCurrentUser() {
     return user;
+}
+
+QVector<Folder> TaskModel::getFolders() {
+    return dbManager->findFoldersByUserId(user.id);
 }
