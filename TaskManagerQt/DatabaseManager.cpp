@@ -116,6 +116,15 @@ QString DatabaseManager::updadeFolder(const Folder& folder) {
 	return "";
 }
 
+QString DatabaseManager::updateTasksFolder(int taskId, int folderId) {
+	QSqlQuery query;
+	query.prepare("UPDATE tasks SET folder_id = :folder_id WHERE id = :id;");
+	query.bindValue(":folder_id", folderId);
+	query.bindValue(":id", taskId);
+	if (!query.exec()) return "update error" + query.lastError().text();
+	return "";
+}
+
 QString DatabaseManager::markTaskCompleted(int id, int newState) {
 	QSqlQuery query;
 	query.prepare("UPDATE tasks SET completed = :completed WHERE id = :id");
