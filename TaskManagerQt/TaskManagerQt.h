@@ -42,7 +42,6 @@ public:
     ~TaskManagerQt();
 private slots:
     void addTask();
-    void deleteTask();
     void editTask();
     void editFolder();
     void markAsCompleted();
@@ -52,6 +51,8 @@ private slots:
     void handTaskCreateData(const CreateTaskWindow::TaskData& data);
     void handFolderCreateData(const QString& title);
     void handTaskEditData(const CreateTaskWindow::TaskData& data);
+    void handTaskDeleteData(int taskId);
+    void handTasksFolderChangeData(int taskId, int folderId);
     void handFolderEditData(const Folder& folder);
     void handFolderDeleteData(int folderId);
     void exitAccount();

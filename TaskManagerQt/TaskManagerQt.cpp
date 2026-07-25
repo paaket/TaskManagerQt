@@ -53,13 +53,13 @@ TaskManagerQt::TaskManagerQt(DatabaseManager* dbManager, QWidget *parent) : QMai
     infoWidget->setAlignment(Qt::AlignTop);
 
     QPushButton* addBtn = new QPushButton("Add a task");
-    QPushButton* deleteBtn = new QPushButton("Delete task");
+    QPushButton* btn = new QPushButton("Btn");
     QPushButton* editTaskBtn = new QPushButton("Edit task");
     QPushButton* markCompleted = new QPushButton("Mark as completed");
     QPushButton* addFolder = new QPushButton("Add folder");
     QPushButton* editFolderBtn = new QPushButton("Edit folder");
     addBtn->setMinimumSize(130, 40);
-    deleteBtn->setMinimumSize(130, 40);
+    btn->setMinimumSize(130, 40);
     editTaskBtn->setMinimumSize(130, 40);
     markCompleted->setMinimumSize(130, 40);
     addFolder->setMinimumSize(130, 40);
@@ -67,11 +67,11 @@ TaskManagerQt::TaskManagerQt(DatabaseManager* dbManager, QWidget *parent) : QMai
 
     QGridLayout* grid = new QGridLayout();
     grid->addWidget(addBtn, 0, 0);
-    grid->addWidget(deleteBtn, 0, 1);
-    grid->addWidget(editTaskBtn, 1, 0);
-    grid->addWidget(markCompleted, 1, 1);
-    grid->addWidget(addFolder, 2, 0);
-    grid->addWidget(editFolderBtn, 2, 1);
+    grid->addWidget(editTaskBtn, 0, 1);
+    grid->addWidget(addFolder, 1, 0);
+    grid->addWidget(editFolderBtn, 1, 1);
+    grid->addWidget(markCompleted, 2, 0);
+    grid->addWidget(btn, 2, 1);
 
     QVBoxLayout* vbox = new QVBoxLayout();
     vbox->addWidget(infoWidget);
@@ -106,7 +106,6 @@ TaskManagerQt::TaskManagerQt(DatabaseManager* dbManager, QWidget *parent) : QMai
     hbox->addLayout(vbox);
 
     connect(addBtn, &QPushButton::clicked, this, &TaskManagerQt::addTask);
-    connect(deleteBtn, &QPushButton::clicked, this, &TaskManagerQt::deleteTask);
     connect(editTaskBtn, &QPushButton::clicked, this, &TaskManagerQt::editTask);
     connect(editFolderBtn, &QPushButton::clicked, this, &TaskManagerQt::editFolder);
     connect(markCompleted, &QPushButton::clicked, this, &TaskManagerQt::markAsCompleted);
@@ -134,22 +133,6 @@ void TaskManagerQt::addTask() {
     window.exec();
 }
 
-void TaskManagerQt::deleteTask() {
-    if (!taskProxy->mapToSource(taskList->currentIndex()).isValid()) {
-        QMessageBox::warning(this, "error", "shoose the task");
-        return;
-    }
-    QString result;
-    QString msg = "Delete selected task?\nThe action cannot be undone";
-    int ret = QMessageBox::question(this, "delete task", msg, QMessageBox::Yes | QMessageBox::No);
-    if (ret == QMessageBox::Yes) result = taskModel->deleteTask(taskProxy->mapToSource(taskList->currentIndex()).data(Qt::UserRole).toInt());
-    if (result != "") {
-        QMessageBox::warning(this, "error", result);
-        return;
-    }
-    statusBar()->showMessage("successfully deleted", 3000);
-}
-
 void TaskManagerQt::editTask() {
     if (!taskProxy->mapToSource(taskList->currentIndex()).isValid()) {
         QMessageBox::warning(this, "error", "shoose the task");
@@ -158,9 +141,13 @@ void TaskManagerQt::editTask() {
     QList<QString> lst = { taskProxy->mapToSource(taskList->currentIndex()).data(TaskModel::Roles::TitleRole).toString(),
     taskProxy->mapToSource(taskList->currentIndex()).data(TaskModel::Roles::DescriptionRole).toString(),
     taskProxy->mapToSource(taskList->currentIndex()).data(TaskModel::Roles::PriorityRole).toString(),
-    taskProxy->mapToSource(taskList->currentIndex()).data(TaskModel::Roles::DeadlineRole).toString() };
-    EditTaskWindow window(this, lst);
+    taskProxy->mapToSource(taskList->currentIndex()).data(TaskModel::Roles::DeadlineRole).toString(),
+    taskProxy->mapToSource(taskList->currentIndex()).data(TaskModel::Roles::IdRole).toString(),
+    taskProxy->mapToSource(taskList->currentIndex()).data(TaskModel::Roles::FolderIdRole).toString() };
+    EditTaskWindow window(this, lst, taskModel->getFolders());
     connect(&window, &EditTaskWindow::saveReady, this, &TaskManagerQt::handTaskEditData);
+    connect(&window, &EditTaskWindow::deleteReady, this, &TaskManagerQt::handTaskDeleteData);
+    connect(&window, &EditTaskWindow::folderChangeReady, this, &TaskManagerQt::handTasksFolderChangeData);
     window.exec();
 }
 
@@ -254,7 +241,6 @@ void TaskManagerQt::showTask(const QModelIndex& index) {
 
 void TaskManagerQt::handTaskCreateData(const CreateTaskWindow::TaskData& data) {
     QString result;
-    qDebug() << folderList->currentIndex().data(FolderModel::Roles::FolderIdRole).toInt();
     result = taskModel->createTask(data, folderList->currentIndex().data(FolderModel::Roles::FolderIdRole).toInt());
     if (result != "") {
         QMessageBox::warning(this, "error", result);
@@ -273,8 +259,25 @@ void TaskManagerQt::handFolderCreateData(const QString& title) {
 }
 
 void TaskManagerQt::handTaskEditData(const CreateTaskWindow::TaskData& data) {
-    QString result;
-    result = taskModel->editTask(data, taskProxy->mapToSource(taskList->currentIndex()).data(TaskModel::Roles::IdRole).toInt());
+    QString result = taskModel->editTask(data, taskProxy->mapToSource(taskList->currentIndex()).data(TaskModel::Roles::IdRole).toInt());
+    if (result != "") {
+        QMessageBox::warning(this, "error", result);
+        return;
+    }
+    statusBar()->showMessage("successfully edited", 3000);
+}
+
+void TaskManagerQt::handTaskDeleteData(int taskId) {
+    QString result = taskModel->deleteTask(taskId);
+    if (result != "") {
+        QMessageBox::warning(this, "error", result);
+        return;
+    }
+    statusBar()->showMessage("successfully deleted", 3000);
+}
+
+void TaskManagerQt::handTasksFolderChangeData(int taskId, int folderId) {
+    QString result = taskModel->changeTasksFolder(taskId, folderId);
     if (result != "") {
         QMessageBox::warning(this, "error", result);
         return;
