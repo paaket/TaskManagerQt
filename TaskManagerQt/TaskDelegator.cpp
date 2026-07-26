@@ -31,3 +31,16 @@ void TaskDelegator::paint(QPainter* painter, const QStyleOptionViewItem& option,
 QSize TaskDelegator::sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const {
     return QSize(option.rect.width(), 40);
 }
+
+void TaskDelegator::updateEditorGeometry(QWidget* editor, const QStyleOptionViewItem& option, const QModelIndex& index) const {
+    QRect rect = option.rect;
+    rect.setTop(rect.top());
+    rect.setHeight(22);
+
+    switch (index.data(TaskModel::Roles::PriorityRole).toInt()) {
+    case 1: rect.adjust(54, 0, -5, 0); break;
+    case 2: rect.adjust(78, 0, -5, 0); break;
+    case 3: rect.adjust(58, 0, -5, 0); break;
+    }
+    editor->setGeometry(rect);
+}
