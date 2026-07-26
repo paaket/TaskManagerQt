@@ -24,6 +24,7 @@ public:
 	QString deleteTaskById(int id);
 	QString deleteFolderById(int id);
 	QString updateTask(const CreateTaskWindow::TaskData& data, int id);
+	QString updateTaskTitle(const QString& title, int id);
 	QString updadeFolder(const Folder& folder);
 	QString updateTasksFolder(int taskId, int folderId);
 	QString markTaskCompleted(int id, int newState);

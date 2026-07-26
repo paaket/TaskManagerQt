@@ -107,6 +107,15 @@ QString DatabaseManager::updateTask(const CreateTaskWindow::TaskData& data, int 
 	return "";
 }
 
+QString DatabaseManager::updateTaskTitle(const QString& title, int id) {
+	QSqlQuery query;
+	query.prepare("UPDATE tasks SET title = :title WHERE id = :id;");
+	query.bindValue(":title", title);
+	query.bindValue(":id", id);
+	if (!query.exec()) return "update error" + query.lastError().text();
+	return "";
+}
+
 QString DatabaseManager::updadeFolder(const Folder& folder) {
 	QSqlQuery query;
 	query.prepare("UPDATE folders SET title = :title WHERE id = :id");
