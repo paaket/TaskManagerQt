@@ -30,6 +30,25 @@ int TaskModel::rowCount(const QModelIndex& parent) const {
 	return tasks.size();
 }
 
+Qt::ItemFlags TaskModel::flags(const QModelIndex& index) const {
+    if (!index.isValid()) return Qt::NoItemFlags();
+    return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable;
+}
+
+bool TaskModel::setData(const QModelIndex& index, const QVariant& value, int role) {
+    if (!index.isValid()) return false;
+    if (value.toString().simplified() == "") return false;
+    if (role == Qt::EditRole) {
+        QString errorText = dbManager->updateTaskTitle(value.toString(), index.data(Roles::IdRole).toInt());
+        if (errorText != "") return false;
+
+        tasks[index.row()].title = value.toString();
+        emit dataChanged(index, index, { Qt::DisplayRole | Roles::TitleRole });
+        return true;
+    }
+    return false;
+}
+
 void TaskModel::addTask(int id, int user_id, int folder_id, QString title, QString description, int priority, QString deadline, bool completed, QString createdAt) {
     beginInsertRows(QModelIndex(), tasks.size(), tasks.size());
     tasks.append(Task{ id, user_id, folder_id, title, description, priority, deadline, completed, createdAt });
