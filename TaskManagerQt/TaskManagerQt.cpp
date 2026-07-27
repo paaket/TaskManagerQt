@@ -37,6 +37,7 @@ TaskManagerQt::TaskManagerQt(DatabaseManager* dbManager, QWidget *parent) : QMai
 
     QMenu* menu = menuBar()->addMenu("Account");
     QAction* edit = menu->addAction("Edit account");
+    QAction* linkTelegram = menu->addAction("Link Telegram");
     QAction* deleteAccount = menu->addAction("Delete account");
     QAction* exit = menu->addAction("Log out");
 
@@ -114,6 +115,7 @@ TaskManagerQt::TaskManagerQt(DatabaseManager* dbManager, QWidget *parent) : QMai
     connect(exit, &QAction::triggered, this, &TaskManagerQt::exitAccount);
     connect(edit, &QAction::triggered, this, &TaskManagerQt::editAccount);
     connect(deleteAccount, &QAction::triggered, this, &TaskManagerQt::deleteAccount);
+    connect(linkTelegram, &QAction::triggered, this, &TaskManagerQt::linkTelegram);
     connect(line, &QLineEdit::textChanged, this, [this](const QString& text) { taskProxy->setSearchText(text); });
     connect(taskList, &QListView::clicked, this, &TaskManagerQt::showTask);
     connect(folderList, &QListView::clicked, this, &TaskManagerQt::folderChanged);
@@ -324,6 +326,25 @@ void TaskManagerQt::deleteAccount() {
     QSettings settings("Paket", "TaskManagerQt");
     settings.remove("currentUserId");
     QApplication::quit();
+}
+
+void TaskManagerQt::linkTelegram() {
+    if (dbManager->checkTelegramConnection(taskModel->getCurrentUser().id)) {
+        auto result = QMessageBox::question(this, "warning", "The Telegram account is already linked\nUnlink it?");
+        if (result == QMessageBox::Yes) {
+            QString errorText = dbManager->unlinkTelegramAccount(taskModel->getCurrentUser().id);
+            if (errorText != "") {
+                QMessageBox::warning(this, "error", errorText);
+                return;
+            }
+            statusBar()->showMessage("successfully unlincked", 3000);
+        }
+        else return;
+    }
+    else {
+        LinkTelegramWindow window(dbManager, taskModel->getCurrentUser().id, this);
+        window.exec();
+    }
 }
 
 void TaskManagerQt::folderChanged(const QModelIndex& index) {

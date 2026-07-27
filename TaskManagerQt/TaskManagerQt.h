@@ -11,6 +11,7 @@
 #include "FolderModel.h"
 #include "CreateFolderWindow.h"
 #include "EditFolderWindow.h"
+#include "LinkTelegramWindow.h"
 #include <QMainWindow>
 #include <QWidget>
 #include <QHBoxLayout>
@@ -58,6 +59,7 @@ private slots:
     void exitAccount();
     void editAccount();
     void deleteAccount();
+    void linkTelegram();
     void folderChanged(const QModelIndex& index);
 private:
     QListView* taskList;
