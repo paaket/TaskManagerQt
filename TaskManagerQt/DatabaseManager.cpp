@@ -1,25 +1,30 @@
 #include "DatabaseManager.h"
 
 bool DatabaseManager::open() {
-	db = QSqlDatabase::addDatabase("QSQLITE");
-	db.setDatabaseName("taskManager.db");
+	db = QSqlDatabase::addDatabase("QPSQL");
+	db.setHostName(config.host_name);
+	db.setPort(config.port);
+	db.setDatabaseName(config.database_name);
+	db.setUserName(config.user_name);
+	db.setPassword(config.password);
+	qDebug() << db.lastError().databaseText();
+	qDebug() << db.lastError().driverText();
 	return db.open();
 }
 
 bool DatabaseManager::createUsersDatabase() {
 	QSqlQuery query;
-	query.exec("PRAGMA foreign_keys = ON;");
-	return query.exec("CREATE TABLE IF NOT EXISTS users(id INTEGER PRIMARY KEY AUTOINCREMENT, login TEXT UNIQUE NOT NULL, password TEXT NOT NULL);");
+	return query.exec("CREATE TABLE IF NOT EXISTS users(id SERIAL PRIMARY KEY, login TEXT UNIQUE NOT NULL, password TEXT NOT NULL);");
 }
 
 bool DatabaseManager::createTasksDatabase() {
 	QSqlQuery query;
-	return query.exec("CREATE TABLE IF NOT EXISTS tasks(id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, folder_id INTEGER NOT NULL, title TEXT NOT NULL, description TEXT NOT NULL, priority INTEGER NOT NULL, deadline TEXT NOT NULL, completed INTEGER NOT NULL, created_at TEXT NOT NULL, FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE, FOREIGN KEY (folder_id) REFERENCES folders (id) ON DELETE CASCADE);");
+	return query.exec("CREATE TABLE IF NOT EXISTS tasks(id SERIAL PRIMARY KEY, user_id INTEGER NOT NULL, folder_id INTEGER NOT NULL, title TEXT NOT NULL, description TEXT NOT NULL, priority INTEGER NOT NULL, deadline TEXT NOT NULL, completed INTEGER NOT NULL, created_at TEXT NOT NULL, FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE, FOREIGN KEY (folder_id) REFERENCES folders (id) ON DELETE CASCADE);");
 }
 
 bool DatabaseManager::createFoldersDatabase() {
 	QSqlQuery query;
-	return query.exec("CREATE TABLE IF NOT EXISTS folders(id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, title TEXT NOT NULL, FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE);");
+	return query.exec("CREATE TABLE IF NOT EXISTS folders(id SERIAL PRIMARY KEY, user_id INTEGER NOT NULL, title TEXT NOT NULL, FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE);");
 }
 
 bool DatabaseManager::checkLogin(const QString& login) {
@@ -200,5 +205,5 @@ QString DatabaseManager::createFolder(const QString& title, int userId) {
 }
 
 DatabaseManager::~DatabaseManager() {
-	db.close(); 
+	db.close();
 };

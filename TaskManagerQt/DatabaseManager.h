@@ -9,6 +9,7 @@
 #include "CreateTaskWindow.h"
 #include "User.h"
 #include "Folder.h"
+#include "Config.h"
 
 class DatabaseManager {
 public:
@@ -36,4 +37,5 @@ public:
 	~DatabaseManager();
 private:
 	QSqlDatabase db;
+	Config config;
 };
