@@ -27,6 +27,16 @@ bool DatabaseManager::createFoldersDatabase() {
 	return query.exec("CREATE TABLE IF NOT EXISTS folders(id SERIAL PRIMARY KEY, user_id INTEGER NOT NULL, title TEXT NOT NULL, FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE);");
 }
 
+bool DatabaseManager::createTelegramAccountsDatabase() {
+	QSqlQuery query;
+	return query.exec("CREATE TABLE IF NOT EXISTS telegram_accounts(id SERIAL PRIMARY KEY, user_id INTEGER NOT NULL, telegram_chat_id INTEGER NOT NULL, telegram_username INTEGER NOT NULL, notifications_enabled INTEGER NOT NULL, FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE);");
+}
+
+bool DatabaseManager::createTelegramLinkCodes() {
+	QSqlQuery query;
+	return query.exec("CREATE TABLE IF NOT EXISTS telegram_link_codes(id SERIAL PRIMARY KEY, user_id INTEGER NOT NULL, code VARCHAR(6) NOT NULL UNIQUE, expires_at TIMESTAMP NOT NULL, FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE);");
+}
+
 bool DatabaseManager::checkLogin(const QString& login) {
 	QSqlQuery query;
 	if (!query.exec("SELECT login FROM users;")) return false;
@@ -202,6 +212,55 @@ QString DatabaseManager::createFolder(const QString& title, int userId) {
 	query.bindValue(":title", title);
 	if (!query.exec()) return "insert error: " + query.lastError().text();
 	return query.lastInsertId().toString();
+}
+
+bool DatabaseManager::checkTelegramConnection(int userId) {
+	QSqlQuery query;
+	query.prepare("SELECT id FROM telegram_accounts WHERE user_id = :user_id;");
+	query.bindValue(":user_id", userId);
+	if (!query.exec()) return false;
+	while (query.next()) return true;
+	return false;
+}
+
+QString DatabaseManager::unlinkTelegramAccount(int userId) {
+	QSqlQuery query;
+	query.prepare("DELETE FROM telegram_accounts WHERE user_id = :user_id;");
+	query.bindValue(":user_id", userId);
+	if (!query.exec()) return "delete error" + query.lastError().text();
+	else return "";
+}
+
+QString DatabaseManager::deleteExpiredTelegramCodes() {
+	QSqlQuery query;
+	if (!query.exec("DELETE FROM telegram_link_codes WHERE expires_at <= NOW();")) return "delete error" + query.lastError().text();
+	return "";
+}
+
+QString DatabaseManager::deleteActiveUserCodes(int userId) {
+	QSqlQuery query;
+	query.prepare("DELETE FROM telegram_link_codes WHERE user_id = :user_id AND expires_at >= NOW();");
+	query.bindValue(":user_id", userId);
+	if (!query.exec()) return "delete error" + query.lastError().text();
+	return "";
+}
+
+bool DatabaseManager::checkTelegramCodeStatus(int code) {
+	QSqlQuery query;
+	query.prepare("SELECT id FROM telegram_link_codes WHERE code = :code");
+	query.bindValue(":code", code);
+	if (!query.exec()) return false;
+	if (query.next()) return true;
+	return false;
+}
+
+QString DatabaseManager::addNewTelegramCode(int userId, int code) {
+	QSqlQuery query;
+	query.prepare("INSERT INTO telegram_link_codes(user_id, code, expires_at) VALUES (:user_id, :code, NOW() + INTERVAL '10 minutes');");
+	query.bindValue(":user_id", userId);
+	query.bindValue(":code", code);
+	if (!query.exec()) return "insert error" + query.lastError().text();
+	return "";
 }
 
 DatabaseManager::~DatabaseManager() {

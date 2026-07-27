@@ -17,6 +17,8 @@ public:
 	bool createUsersDatabase();
 	bool createTasksDatabase();
 	bool createFoldersDatabase();
+	bool createTelegramAccountsDatabase();
+	bool createTelegramLinkCodes();
 	bool checkLogin(const QString& login);
 	QString addNewUser(const QString& login, const QString& password);
 	QString logInToAccount(const QString& login, const QString& password, bool remember);
@@ -34,6 +36,12 @@ public:
 	QString updateUser(const User& userUpd);
 	QString deleteAccountById(int uderId);
 	QString createFolder(const QString& title, int userId);
+	bool checkTelegramConnection(int userId);
+	QString unlinkTelegramAccount(int userId);
+	QString deleteExpiredTelegramCodes();
+	QString deleteActiveUserCodes(int userId);
+	bool checkTelegramCodeStatus(int code);
+	QString addNewTelegramCode(int userId, int code);
 	~DatabaseManager();
 private:
 	QSqlDatabase db;
