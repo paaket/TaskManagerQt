@@ -1,0 +1,10 @@
+#pragma once
+#include <QString>
+
+struct Config {
+	QString host_name = "HOSTNAME";
+	int port = 0000;
+	QString database_name = "DATABASENAME";
+	QString user_name = "USERNAME";
+	QString password = "PASSWORD";
+};
