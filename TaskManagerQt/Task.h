@@ -1,5 +1,6 @@
 #pragma once
 #include <QString>
+#include <QDateTime>
 
 struct Task {
 	int id;
@@ -8,7 +9,7 @@ struct Task {
 	QString title;
 	QString description;
 	int priority;
-	QString deadline;
+	QDateTime deadline;
 	bool completed;
-	QString createdAt;
+	QDateTime createdAt;
 };

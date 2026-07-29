@@ -10,7 +10,7 @@
 #include <QString>
 #include <QVector>
 #include <QMessageBox>
-#include <QDateEdit>
+#include <QDateTimeEdit>
 #include <QComboBox>
 
 class CreateTaskWindow : public QDialog {
@@ -20,8 +20,8 @@ public:
 		QString title;
 		QString description;
 		int priority;
-		QString deadline;
-		QString createdAt;
+		QDateTime deadline;
+		QDateTime createdAt;
 	};
 	CreateTaskWindow(QWidget* patent = nullptr);
 protected slots:
@@ -31,7 +31,7 @@ signals:
 protected:
 	QLineEdit* title;
 	QComboBox* priority;
-	QDateEdit* deadline;
+	QDateTimeEdit* deadline;
 	QTextEdit* description;
 	QGridLayout* grid;
 	QGridLayout* btnGrid;

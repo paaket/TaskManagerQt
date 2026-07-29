@@ -49,7 +49,7 @@ bool TaskModel::setData(const QModelIndex& index, const QVariant& value, int rol
     return false;
 }
 
-void TaskModel::addTask(int id, int user_id, int folder_id, QString title, QString description, int priority, QString deadline, bool completed, QString createdAt) {
+void TaskModel::addTask(int id, int user_id, int folder_id, const QString& title, const QString& description, int priority, QDateTime deadline, bool completed, QDateTime createdAt) {
     beginInsertRows(QModelIndex(), tasks.size(), tasks.size());
     tasks.append(Task{ id, user_id, folder_id, title, description, priority, deadline, completed, createdAt });
     endInsertRows();

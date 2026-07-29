@@ -202,11 +202,11 @@ void TaskManagerQt::sortTasks(int index) {
         break;
     case 3:
         taskProxy->setSortRole(TaskModel::Roles::DeadlineRole);
-        taskProxy->sort(0, Qt::DescendingOrder);
+        taskProxy->sort(0);
         break;
     case 4:
         taskProxy->setSortRole(TaskModel::Roles::DeadlineRole);
-        taskProxy->sort(0);
+        taskProxy->sort(0, Qt::DescendingOrder);
         break;
     case 5:
         taskProxy->setSortRole(TaskModel::Roles::CompletedRole);
@@ -234,9 +234,9 @@ void TaskManagerQt::showTask(const QModelIndex& index) {
     QString text = "Title: " + index.data(TaskModel::Roles::TitleRole).toString() +
         "\nDescription: " + index.data(TaskModel::Roles::DescriptionRole).toString() +
         "\nPriority: " + priorityText +
-        "\nDeadline: " + index.data(TaskModel::Roles::DeadlineRole).toString() +
+        "\nDeadline: " + index.data(TaskModel::Roles::DeadlineRole).toDateTime().toString("dd.MM.yyyy HH:mm") +
         "\nStatus: " + statusText +
-        "\nCreated at: " + index.data(TaskModel::Roles::CreatedAtRole).toString() +
+        "\nCreated at: " + index.data(TaskModel::Roles::CreatedAtRole).toDateTime().toString("dd.MM.yyyy HH:mm") +
         "\nId: " + index.data(TaskModel::Roles::IdRole).toString();
     infoWidget->setText(text);
 }

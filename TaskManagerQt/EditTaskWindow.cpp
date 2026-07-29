@@ -7,7 +7,7 @@ EditTaskWindow::EditTaskWindow(QWidget* parent, const QList<QString>& list, cons
 
 	title->setText(list[0]);
 	priority->setCurrentIndex(list[2].toInt());
-	deadline->setDate(QDate::fromString(list[3], "dd.MM.yyyy"));
+	deadline->setDateTime(QDateTime::fromString(list[3], "dd.MM.yyyy HH:mm"));
 	description->setText(list[1]);
 
 	QPushButton* deleteBtn = new QPushButton("Delete task", this);
@@ -46,7 +46,7 @@ void EditTaskWindow::saveClicked() {
 		QMessageBox::warning(this, "error", "fill in all fields");
 		return;
 	}
-	TaskData task = { title->text(), description->toPlainText(), priority->currentIndex(), deadline->text(), QDate::currentDate().toString("dd.MM.yyyy") };
+	TaskData task = { title->text(), description->toPlainText(), priority->currentIndex(), deadline->dateTime(), QDateTime::currentDateTime() };
 	emit saveReady(task);
 	emit folderChangeReady(taskId, folderId);
 	accept();

@@ -15,8 +15,15 @@ CreateTaskWindow::CreateTaskWindow(QWidget* parent) : QDialog(parent) {
 	priority = new QComboBox();
 	priority->addItems(list);
 	priority->setCurrentIndex(0);
-	deadline = new QDateEdit();
-	deadline->setDisplayFormat("dd.MM.yyyy");
+	deadline = new QDateTimeEdit();
+	deadline->setDisplayFormat("dd.MM.yyyy HH:mm");
+	QDateTime current = QDateTime::currentDateTime();
+	QTime time = current.time();
+	time.setHMS(time.hour(), time.minute(), 0, 0);
+	current.setTime(time);
+	deadline->setDateTime(current);
+	deadline->setCalendarPopup(true);
+	deadline->setMinimumDateTime(QDateTime::currentDateTime());
 
 	description = new QTextEdit();
 	description->setPlaceholderText("enter description here");
@@ -51,7 +58,7 @@ void CreateTaskWindow::saveClicked() {
 		QMessageBox::warning(this, "error", "fill in all fields");
 		return;
 	}
-	TaskData task = { title->text(), description->toPlainText(), priority->currentIndex(), deadline->text(), QDate::currentDate().toString("dd.MM.yyyy") };
+	TaskData task = { title->text(), description->toPlainText(), priority->currentIndex(), deadline->dateTime(), QDateTime::currentDateTime()};
 	emit saveReady(task);
 	accept();
 }

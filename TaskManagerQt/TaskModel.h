@@ -1,6 +1,7 @@
 #pragma once
 #include <QABstractListModel>
 #include <QVector>
+#include <QDateTime>
 #include <QModelIndex>
 #include "Task.h"
 #include "CreateTaskWindow.h"
@@ -21,7 +22,7 @@ public:
 		CreatedAtRole
 	};
 	TaskModel(int userId, DatabaseManager* dbManager, QObject* parenr = nullptr);
-	void addTask(int id, int user_id, int folder_id, QString title, QString description, int priority, QString deadline, bool completed, QString createdAt);
+	void addTask(int id, int user_id, int folder_id, const QString& title, const QString& description, int priority, QDateTime deadline, bool completed, QDateTime createdAt);
 	QString deleteTask(int id);
 	QString editTask(const CreateTaskWindow::TaskData& data, int id);
 	QString markCompleted(int id, int newState);

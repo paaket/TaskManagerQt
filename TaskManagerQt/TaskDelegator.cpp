@@ -1,12 +1,12 @@
 #include "TaskDelegator.h"
 
-QString taskTitle(bool status, const QString& priority, const QString& title, const QString& deadline) {
+QString taskTitle(bool status, const QString& priority, const QString& title, const QDateTime deadline) {
     QString smile = (status == 1) ? "\u2705" : "\U0001F534";
     QString priorityText;
     if (priority == "1") priorityText = "Low";
     if (priority == "2") priorityText = "Medium";
     if (priority == "3") priorityText = "High";
-    return smile + " [" + priorityText + "] " + title + "\nDue: " + deadline;
+    return smile + " [" + priorityText + "] " + title + "\nDue: " + deadline.toString("dd.MM.yyyy HH:mm");
 }
 
 TaskDelegator::TaskDelegator(QObject* parent) : QStyledItemDelegate(parent) {
@@ -24,7 +24,7 @@ void TaskDelegator::paint(QPainter* painter, const QStyleOptionViewItem& option,
 
     painter->drawText(option.rect, taskTitle(index.data(TaskModel::Roles::CompletedRole).toBool(),
         index.data(TaskModel::Roles::PriorityRole).toString(), index.data(TaskModel::Roles::TitleRole).toString(),
-        index.data(TaskModel::Roles::DeadlineRole).toString()));
+        index.data(TaskModel::Roles::DeadlineRole).toDateTime()));
     painter->restore();
 }
 

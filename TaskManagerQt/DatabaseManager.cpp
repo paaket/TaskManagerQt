@@ -19,7 +19,7 @@ bool DatabaseManager::createUsersDatabase() {
 
 bool DatabaseManager::createTasksDatabase() {
 	QSqlQuery query;
-	return query.exec("CREATE TABLE IF NOT EXISTS tasks(id SERIAL PRIMARY KEY, user_id INTEGER NOT NULL, folder_id INTEGER NOT NULL, title TEXT NOT NULL, description TEXT NOT NULL, priority INTEGER NOT NULL, deadline TEXT NOT NULL, completed INTEGER NOT NULL, created_at TEXT NOT NULL, FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE, FOREIGN KEY (folder_id) REFERENCES folders (id) ON DELETE CASCADE);");
+	return query.exec("CREATE TABLE IF NOT EXISTS tasks(id SERIAL PRIMARY KEY, user_id INTEGER NOT NULL, folder_id INTEGER NOT NULL, title TEXT NOT NULL, description TEXT NOT NULL, priority INTEGER NOT NULL, deadline TIMESTAMPTZ NOT NULL, completed INTEGER NOT NULL, created_at TEXT NOT NULL, FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE, FOREIGN KEY (folder_id) REFERENCES folders (id) ON DELETE CASCADE);");
 }
 
 bool DatabaseManager::createFoldersDatabase() {
@@ -29,12 +29,12 @@ bool DatabaseManager::createFoldersDatabase() {
 
 bool DatabaseManager::createTelegramAccountsDatabase() {
 	QSqlQuery query;
-	return query.exec("CREATE TABLE IF NOT EXISTS telegram_accounts(id SERIAL PRIMARY KEY, user_id INTEGER NOT NULL, telegram_chat_id INTEGER NOT NULL, telegram_username INTEGER NOT NULL, notifications_enabled INTEGER NOT NULL, FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE);");
+	return query.exec("CREATE TABLE IF NOT EXISTS telegram_accounts(id SERIAL PRIMARY KEY, user_id INTEGER NOT NULL UNIQUE, telegram_chat_id INTEGER NOT NULL UNIQUE, telegram_username TEXT NOT NULL, notifications_enabled INTEGER NOT NULL, FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE);");
 }
 
 bool DatabaseManager::createTelegramLinkCodes() {
 	QSqlQuery query;
-	return query.exec("CREATE TABLE IF NOT EXISTS telegram_link_codes(id SERIAL PRIMARY KEY, user_id INTEGER NOT NULL, code VARCHAR(6) NOT NULL UNIQUE, expires_at TIMESTAMP NOT NULL, FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE);");
+	return query.exec("CREATE TABLE IF NOT EXISTS telegram_link_codes(id SERIAL PRIMARY KEY, user_id INTEGER NOT NULL, code VARCHAR(6) NOT NULL UNIQUE, expires_at TIMESTAMPTZ NOT NULL, FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE);");
 }
 
 bool DatabaseManager::checkLogin(const QString& login) {
@@ -77,7 +77,7 @@ QVector<Task> DatabaseManager::findTasksById(int userId) {
 	QVector<Task> tasks;
 	while (query.next()) {
 		tasks.append(Task{ query.value(0).toInt(), query.value(1).toInt(), query.value(2).toInt(), query.value(3).toString(), query.value(4).toString(),
-			query.value(5).toInt(), query.value(6).toString(), query.value(7).toBool(), query.value(8).toString() });
+			query.value(5).toInt(), query.value(6).toDateTime().toLocalTime(), query.value(7).toBool(), query.value(8).toDateTime().toLocalTime() });
 	}
 	return tasks;
 }
