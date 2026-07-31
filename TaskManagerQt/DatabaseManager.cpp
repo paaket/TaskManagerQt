@@ -19,7 +19,7 @@ bool DatabaseManager::createUsersDatabase() {
 
 bool DatabaseManager::createTasksDatabase() {
 	QSqlQuery query;
-	return query.exec("CREATE TABLE IF NOT EXISTS tasks(id SERIAL PRIMARY KEY, user_id INTEGER NOT NULL, folder_id INTEGER NOT NULL, title TEXT NOT NULL, description TEXT NOT NULL, priority INTEGER NOT NULL, deadline TIMESTAMPTZ NOT NULL, completed INTEGER NOT NULL, created_at TEXT NOT NULL, FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE, FOREIGN KEY (folder_id) REFERENCES folders (id) ON DELETE CASCADE);");
+	return query.exec("CREATE TABLE IF NOT EXISTS tasks(id SERIAL PRIMARY KEY, user_id INTEGER NOT NULL, folder_id INTEGER NOT NULL, title TEXT NOT NULL, description TEXT NOT NULL, priority INTEGER NOT NULL, deadline TIMESTAMPTZ NOT NULL, completed INTEGER NOT NULL, created_at TIMESTAMPTZ NOT NULL, FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE, FOREIGN KEY (folder_id) REFERENCES folders (id) ON DELETE CASCADE);");
 }
 
 bool DatabaseManager::createFoldersDatabase() {
@@ -32,9 +32,14 @@ bool DatabaseManager::createTelegramAccountsDatabase() {
 	return query.exec("CREATE TABLE IF NOT EXISTS telegram_accounts(id SERIAL PRIMARY KEY, user_id INTEGER NOT NULL UNIQUE, telegram_chat_id INTEGER NOT NULL UNIQUE, telegram_username TEXT NOT NULL, notifications_enabled INTEGER NOT NULL, FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE);");
 }
 
-bool DatabaseManager::createTelegramLinkCodes() {
+bool DatabaseManager::createTelegramLinkCodesDatabase() {
 	QSqlQuery query;
 	return query.exec("CREATE TABLE IF NOT EXISTS telegram_link_codes(id SERIAL PRIMARY KEY, user_id INTEGER NOT NULL, code VARCHAR(6) NOT NULL UNIQUE, expires_at TIMESTAMPTZ NOT NULL, FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE);");
+}
+
+bool DatabaseManager::createTaskNotificationsDatabase() {
+	QSqlQuery query;
+	return query.exec("CREATE TABLE IF NOT EXISTS task_notifications(id SERIAL PRIMARY KEY, task_id INTEGER NOT NULL, notify_at TIMESTAMPTZ NOT NULL, sent_at TIMESTAMPTZ, FOREIGN KEY (task_id) REFERENCES tasks (id) ON DELETE CASCADE);");
 }
 
 bool DatabaseManager::checkLogin(const QString& login) {
@@ -112,13 +117,19 @@ QString DatabaseManager::deleteFolderById(int id) {
 
 QString DatabaseManager::updateTask(const CreateTaskWindow::TaskData& data, int id) {
 	QSqlQuery query;
+	query.prepare("UPDATE task_notifications SET notify_at = :notify_at WHERE task_id = :task_id;");
+	query.bindValue(":notify_at", data.notifyAt);
+	query.bindValue(":task_id", id);
+	if (!query.exec()) return "notifications update error: " + query.lastError().text();
+
+	query.clear();
 	query.prepare("UPDATE tasks SET title = :title, description = :description, priority = :priority, deadline = :deadline WHERE id = :id;");
 	query.bindValue(":title", data.title);
 	query.bindValue(":description", data.description);
 	query.bindValue(":priority", data.priority);
 	query.bindValue(":deadline", data.deadline);
 	query.bindValue(":id", id);
-	if (!query.exec()) return "update error: " + query.lastError().text();
+	if (!query.exec()) return "tasks update error: " + query.lastError().text();
 	return "";
 }
 
@@ -160,7 +171,7 @@ QString DatabaseManager::markTaskCompleted(int id, int newState) {
 
 QString DatabaseManager::createTask(const CreateTaskWindow::TaskData& data, int folderId, int userId) {
 	QSqlQuery query;
-	query.prepare("INSERT INTO tasks(user_id, folder_id, title, description, priority, deadline, completed, created_at) VALUES (:user_id, :folder_id, :title, :description, :priority, :deadline, :completed, :created_at)");
+	query.prepare("INSERT INTO tasks(user_id, folder_id, title, description, priority, deadline, completed, created_at) VALUES (:user_id, :folder_id, :title, :description, :priority, :deadline, :completed, :created_at);");
 	query.bindValue(":user_id", userId);
 	query.bindValue(":folder_id", folderId);
 	query.bindValue(":title", data.title);
@@ -169,7 +180,14 @@ QString DatabaseManager::createTask(const CreateTaskWindow::TaskData& data, int 
 	query.bindValue(":deadline", data.deadline);
 	query.bindValue(":completed", 0);
 	query.bindValue(":created_at", data.createdAt);
-	if (!query.exec()) return "insert error: " + query.lastError().text();
+	if (!query.exec()) return "tasks insert error: " + query.lastError().text();
+
+	QSqlQuery notifQuery;
+	notifQuery.prepare("INSERT INTO task_notifications(task_id, notify_at) VALUES (:task_id, :notify_at);");
+	notifQuery.bindValue(":task_id", query.lastInsertId().toInt());
+	notifQuery.bindValue(":notify_at", data.notifyAt);
+	if (!notifQuery.exec()) return "notifications insert error: " + query.lastError().text();
+
 	return query.lastInsertId().toString();
 }
 
@@ -260,6 +278,15 @@ QString DatabaseManager::addNewTelegramCode(int userId, int code) {
 	query.bindValue(":user_id", userId);
 	query.bindValue(":code", code);
 	if (!query.exec()) return "insert error" + query.lastError().text();
+	return "";
+}
+
+QString DatabaseManager::checkNotification(int taskId) {
+	QSqlQuery query;
+	query.prepare("SELECT notify_at FROM task_notifications WHERE task_id = :task_id;");
+	query.bindValue(":task_id", taskId);
+	if (!query.exec()) return "";
+	if (query.next()) return query.value(0).toString();
 	return "";
 }
 

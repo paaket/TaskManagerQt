@@ -5,6 +5,7 @@
 #include <QString>
 #include <QSettings>
 #include <QVector>
+#include <QDateTime>
 #include "Task.h"
 #include "CreateTaskWindow.h"
 #include "User.h"
@@ -18,7 +19,8 @@ public:
 	bool createTasksDatabase();
 	bool createFoldersDatabase();
 	bool createTelegramAccountsDatabase();
-	bool createTelegramLinkCodes();
+	bool createTelegramLinkCodesDatabase();
+	bool createTaskNotificationsDatabase();
 	bool checkLogin(const QString& login);
 	QString addNewUser(const QString& login, const QString& password);
 	QString logInToAccount(const QString& login, const QString& password, bool remember);
@@ -42,6 +44,7 @@ public:
 	QString deleteActiveUserCodes(int userId);
 	bool checkTelegramCodeStatus(int code);
 	QString addNewTelegramCode(int userId, int code);
+	QString checkNotification(int taskId);
 	~DatabaseManager();
 private:
 	QSqlDatabase db;
