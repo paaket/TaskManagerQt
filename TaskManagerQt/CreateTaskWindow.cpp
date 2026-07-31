@@ -7,6 +7,8 @@ CreateTaskWindow::CreateTaskWindow(QWidget* parent) : QDialog(parent) {
 	QLabel* priorityLbl = new QLabel("Priority:");
 	QLabel* deadlineLbl = new QLabel("Deadline:");
 	QLabel* descriptionLbl = new QLabel("Description:");
+	QLabel* notificationLbl = new QLabel("Notification:");
+	QLabel* notifCheckBoxLbl = new QLabel("Don't notify me:");
 
 	QList<QString> list = { "None", "Low", "Medium", "High" };
 
@@ -25,6 +27,15 @@ CreateTaskWindow::CreateTaskWindow(QWidget* parent) : QDialog(parent) {
 	deadline->setCalendarPopup(true);
 	deadline->setMinimumDateTime(QDateTime::currentDateTime());
 
+	notification = new QDateTimeEdit();
+	notification->setDisplayFormat("dd.MM.yyyy HH:mm");
+	notification->setDateTime(current);
+	notification->setCalendarPopup(true);
+	//notification->setMinimumDateTime(QDateTime::currentDateTime());
+	notification->setMaximumDateTime(current);
+
+	notifCheckBox = new QCheckBox();
+
 	description = new QTextEdit();
 	description->setPlaceholderText("enter description here");
 
@@ -37,6 +48,10 @@ CreateTaskWindow::CreateTaskWindow(QWidget* parent) : QDialog(parent) {
 	grid->addWidget(priority, 2, 1);
 	grid->addWidget(deadlineLbl, 3, 0);
 	grid->addWidget(deadline, 3, 1);
+	grid->addWidget(notificationLbl, 4, 0);
+	grid->addWidget(notification, 4, 1);
+	grid->addWidget(notifCheckBoxLbl, 5, 0);
+	grid->addWidget(notifCheckBox, 5, 1);
 	
 	QPushButton* saveBtn = new QPushButton("Save");
 
@@ -48,17 +63,31 @@ CreateTaskWindow::CreateTaskWindow(QWidget* parent) : QDialog(parent) {
 	vbox->addLayout(btnGrid);
 
 	connect(saveBtn, &QPushButton::clicked, this, &CreateTaskWindow::saveClicked);
+	connect(deadline, &QDateTimeEdit::dateTimeChanged, this, &CreateTaskWindow::changeNotifMaxTime);
+	connect(notifCheckBox, &QCheckBox::toggled, notification, [this](bool checked) {
+		notification->setEnabled(!checked);
+		});
 
 	setLayout(vbox);
 }
 
+void CreateTaskWindow::changeNotifMaxTime() {
+	notification->setMaximumDateTime(deadline->dateTime());
+}
+
 void CreateTaskWindow::saveClicked() {
-	if (title->text().simplified() == "" or description->toPlainText().simplified() == ""
-		or priority->currentIndex() == 0 or deadline->text().simplified() == "") {
+	if (title->text().simplified() == "" or description->toPlainText().simplified() == "" or priority->currentIndex() == 0) {
 		QMessageBox::warning(this, "error", "fill in all fields");
 		return;
 	}
-	TaskData task = { title->text(), description->toPlainText(), priority->currentIndex(), deadline->dateTime(), QDateTime::currentDateTime()};
+
+	QVariant notifDate;
+	if (notifCheckBox->isChecked())
+		notifDate = QVariant(QVariant::DateTime);
+	else
+		notifDate = notification->dateTime();
+
+	TaskData task = { title->text(), description->toPlainText(), priority->currentIndex(), deadline->dateTime(), QDateTime::currentDateTime(), notifDate };
 	emit saveReady(task);
 	accept();
 }

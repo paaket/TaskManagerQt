@@ -6,11 +6,12 @@
 #include "CreateTaskWindow.h"
 #include "Folder.h"
 #include "DatabaseManager.h"
+#include "TaskModel.h"
 
 class EditTaskWindow : public CreateTaskWindow {
 	Q_OBJECT
 public:
-	EditTaskWindow(QWidget* parent = nullptr, const QList<QString>& list = {}, const QVector<Folder>& folders = {});
+	EditTaskWindow(const QModelIndex& index, QVector<Folder> folders, DatabaseManager* dbManager, QWidget* parent = nullptr);
 private slots:
 	void deleteClicked();
 	void folderChanged(const QString& text);
@@ -23,4 +24,5 @@ private:
 	int taskId;
 	int folderId;
 	QVector<Folder> folders;
+	DatabaseManager* dbManager;
 };

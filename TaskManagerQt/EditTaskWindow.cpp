@@ -1,14 +1,21 @@
 #include "EditTaskWindow.h"
 
-EditTaskWindow::EditTaskWindow(QWidget* parent, const QList<QString>& list, const QVector<Folder>& folders) : CreateTaskWindow(parent) {
+EditTaskWindow::EditTaskWindow(const QModelIndex& index, QVector<Folder> folders, DatabaseManager* dbManager, QWidget* parent) : CreateTaskWindow(parent) {
+	this->dbManager = dbManager;
 	this->folders = folders;
-	taskId = list[4].toInt();
-	folderId = list[5].toInt();
+	taskId = index.data(TaskModel::Roles::IdRole).toInt();
+	folderId = index.data(TaskModel::Roles::FolderIdRole).toInt();
 
-	title->setText(list[0]);
-	priority->setCurrentIndex(list[2].toInt());
-	deadline->setDateTime(QDateTime::fromString(list[3], "dd.MM.yyyy HH:mm"));
-	description->setText(list[1]);
+	title->setText(index.data(TaskModel::Roles::TitleRole).toString());
+	priority->setCurrentIndex(index.data(TaskModel::Roles::PriorityRole).toInt());
+	deadline->setDateTime(index.data(TaskModel::Roles::DeadlineRole).toDateTime());
+	description->setText(index.data(TaskModel::Roles::DescriptionRole).toString());
+
+	QString result = dbManager->checkNotification(index.data(TaskModel::Roles::IdRole).toInt());
+	if (result == "")
+		notifCheckBox->setChecked(true);
+	else
+		notification->setDateTime(QDateTime::fromString(result, "dd.MM.yyyy HH:mm"));
 
 	QPushButton* deleteBtn = new QPushButton("Delete task", this);
 	btnGrid->addWidget(deleteBtn, 0, 0, 1, 2);
@@ -16,10 +23,10 @@ EditTaskWindow::EditTaskWindow(QWidget* parent, const QList<QString>& list, cons
 	QLabel* folderLbl = new QLabel("Folder:", this);
 	folderBox = new QComboBox(this);
 	for (auto folder : folders) folderBox->addItem(folder.title);
-	for (int i = 0; i < folders.size(); i++) if (folders[i].id == list[5].toInt()) folderBox->setCurrentIndex(i);
+	for (int i = 0; i < folders.size(); i++) if (folders[i].id == index.data(TaskModel::Roles::FolderIdRole).toInt()) folderBox->setCurrentIndex(i);
 
-	grid->addWidget(folderLbl, 4, 0);
-	grid->addWidget(folderBox, 4, 1);
+	grid->addWidget(folderLbl, 6, 0);
+	grid->addWidget(folderBox, 6, 1);
 
 	connect(deleteBtn, &QPushButton::clicked, this, &EditTaskWindow::deleteClicked);
 	connect(folderBox, &QComboBox::currentTextChanged, this, &EditTaskWindow::folderChanged);
@@ -41,12 +48,18 @@ void EditTaskWindow::folderChanged(const QString& text) {
 }
 
 void EditTaskWindow::saveClicked() {
-	if (title->text().simplified() == "" or description->toPlainText().simplified() == ""
-		or priority->currentIndex() == 0 or deadline->text().simplified() == "") {
+	if (title->text().simplified() == "" or description->toPlainText().simplified() == "" or priority->currentIndex() == 0) {
 		QMessageBox::warning(this, "error", "fill in all fields");
 		return;
 	}
-	TaskData task = { title->text(), description->toPlainText(), priority->currentIndex(), deadline->dateTime(), QDateTime::currentDateTime() };
+
+	QVariant notifDate;
+	if (notifCheckBox->isChecked())
+		notifDate = QVariant(QVariant::DateTime);
+	else
+		notifDate = notification->dateTime();
+
+	TaskData task = { title->text(), description->toPlainText(), priority->currentIndex(), deadline->dateTime(), QDateTime::currentDateTime(), notifDate };
 	emit saveReady(task);
 	emit folderChangeReady(taskId, folderId);
 	accept();

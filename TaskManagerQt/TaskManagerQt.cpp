@@ -140,13 +140,7 @@ void TaskManagerQt::editTask() {
         QMessageBox::warning(this, "error", "shoose the task");
         return;
     }
-    QList<QString> lst = { taskProxy->mapToSource(taskList->currentIndex()).data(TaskModel::Roles::TitleRole).toString(),
-    taskProxy->mapToSource(taskList->currentIndex()).data(TaskModel::Roles::DescriptionRole).toString(),
-    taskProxy->mapToSource(taskList->currentIndex()).data(TaskModel::Roles::PriorityRole).toString(),
-    taskProxy->mapToSource(taskList->currentIndex()).data(TaskModel::Roles::DeadlineRole).toString(),
-    taskProxy->mapToSource(taskList->currentIndex()).data(TaskModel::Roles::IdRole).toString(),
-    taskProxy->mapToSource(taskList->currentIndex()).data(TaskModel::Roles::FolderIdRole).toString() };
-    EditTaskWindow window(this, lst, taskModel->getFolders());
+    EditTaskWindow window(taskProxy->mapToSource(taskList->currentIndex()), taskModel->getFolders(), dbManager, this);
     connect(&window, &EditTaskWindow::saveReady, this, &TaskManagerQt::handTaskEditData);
     connect(&window, &EditTaskWindow::deleteReady, this, &TaskManagerQt::handTaskDeleteData);
     connect(&window, &EditTaskWindow::folderChangeReady, this, &TaskManagerQt::handTasksFolderChangeData);
